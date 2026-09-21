@@ -65,9 +65,13 @@ Ver [SDD-GUIDE.md](SDD-GUIDE.md) para una guía detallada de SDD.
 | Componente | Tecnología |
 |------------|------------|
 | Framework | ASP.NET Core 8.0 |
+| API Docs | Swagger (Swashbuckle) |
 | Patrón | DDD + Clean Architecture |
+| DI Container | Autofac |
 | ORM | Entity Framework Core 8.0 |
+| Mapping | AutoMapper |
 | Base de Datos | PostgreSQL 16 |
+| Testing | xUnit + Bogus + FluentAssertions |
 | Container | Docker |
 | CI/CD | GitHub Actions + GHCR |
 | Server | VPS (Docker) |

@@ -28,10 +28,13 @@
 | Capa | Tecnología | Propósito |
 |------|------------|-----------|
 | **API** | ASP.NET Core 8.0 | Framework web, routing, serialización |
+| **API Docs** | Swagger / Swashbuckle | Documentación OpenAPI de la API |
 | **DDD** | .NET 8.0 | Domain-Driven Design, patrones de dominio |
+| **DI Container** | Autofac | Dependency Injection avanzado, módulos |
 | **ORM** | Entity Framework Core 8.0 | Mapeo objeto-relacional, migraciones |
+| **Mapping** | AutoMapper | Mapeo de objetos (Entity ↔ DTO) |
 | **Base de Datos** | PostgreSQL 16 | Base de datos relacional |
-| **Pruebas** | xUnit + Moq | Testing unitario y de integración |
+| **Pruebas** | xUnit + Bogus + FluentAssertions | Testing con datos fake y assertions fluent |
 
 ## Capas (DDD + Clean Architecture)
 
@@ -39,11 +42,14 @@
 - **Responsabilidad**: Recibir peticiones HTTP, retornar respuestas
 - **Tecnología**: ASP.NET Core 8.0
 - **Componentes**: Controllers, DTOs, Middleware, Filters, Program.cs
+- **API Docs**: Swagger (Swashbuckle) para documentación OpenAPI
+- **DI Container**: Autofac para dependency injection
 
 ### Application Layer
 - **Responsabilidad**: Orquestar operaciones, coordinar entre capas
 - **Tecnología**: .NET 8.0
 - **Componentes**: Use Cases, Application Services, Interfaces (Ports), DTOs
+- **Mapping**: AutoMapper para Entity ↔ DTO
 
 ### Domain Layer
 - **Responsabilidad**: Lógica de negocio, reglas, invariantes

@@ -20,11 +20,14 @@ Se selecciona el siguiente stack tecnológico:
 | Componente | Tecnología | Versión | Justificación |
 |------------|------------|---------|---------------|
 | **Framework Web** | ASP.NET Core | 8.0 | Rendimiento, cross-platform, ecosistema maduro |
+| **API Docs** | Swagger (Swashbuckle) | 6.x | Documentación OpenAPI, UI interactiva |
 | **Patrón Arquitectónico** | DDD + Clean Architecture | - | Separación de capas, lógica de negocio pura |
+| **DI Container** | Autofac | 8.x | Módulos, registration assembly, lifetime scopes |
 | **ORM** | Entity Framework Core | 8.0 | Code First, migraciones, LINQ |
+| **Mapping** | AutoMapper | 13.x | Mapeo Entity ↔ DTO, profiles |
 | **Base de Datos** | PostgreSQL | 16 | Robusto, JSON support, extensions |
 | **Driver PostgreSQL** | Npgsql | - | Driver oficial .NET para PostgreSQL |
-| **Testing** | xUnit + Moq | - | Estándar en .NET, mocking sencillo |
+| **Testing** | xUnit + Bogus + FluentAssertions | - | Testing moderno con datos fake |
 | **Containerización** | Docker | - | Consistencia dev/prod, portabilidad |
 | **Registry** | GitHub Container Registry | - | Integrado con repo, gratuito para públicos |
 | **CI/CD** | GitHub Actions | - | Automatización,免费 para repos públicos |
@@ -34,13 +37,20 @@ Se selecciona el siguiente stack tecnológico:
 
 ### Positivas
 - **ASP.NET Core 8.0**: Alto rendimiento, soporte LTS, minimal APIs
+- **Swagger**: Documentación automática de la API, UI interactiva
 - **DDD**: Lógica de negocio separada y testable
+- **Autofac**: DI container robusto, módulos organizados, registration assembly
 - **EF Core Code First**: Migraciones automáticas, schema versionado
+- **AutoMapper**: Mapeo limpio entre entidades y DTOs
 - **PostgreSQL**: ACID, escalabilidad, extensiones (JSON, PostGIS, etc.)
 - **Clean Architecture**: Fácil de mantener y testear
+- **Bogus**: Datos fake realistas para testing
+- **FluentAssertions**: Assertions legibles y expresivas
 
 ### Negativas
 - **Curva de aprendizaje DDD**: Requiere entender conceptos como Agregados, Value Objects
+- **Autofac complejidad**: Más configuración que DI nativo de ASP.NET Core
+- **AutoMapper overhead**: Ligero costo de rendimiento (aceptable para la mayoría de casos)
 - **EF Core overhead**: Rendimiento menor que ADO.NET puro (aceptable para la mayoría de casos)
 - **PostgreSQL**: Configuración inicial más compleja que SQLite
 
