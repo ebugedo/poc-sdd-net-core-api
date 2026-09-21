@@ -1,0 +1,16 @@
+# Archivos que no deben subirse a Docker
+.git
+.gitignore
+*.md
+!README.md
+docker-compose*.yml
+Dockerfile
+.env
+.vscode
+.idea
+*.user
+*.suo
+bin/
+obj/
+nupkg/
+TestResults/
