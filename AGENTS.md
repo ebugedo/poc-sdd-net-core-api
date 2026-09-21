@@ -11,7 +11,39 @@ Esto incluye:
 - **Eliminar archivos**: Listar archivos a eliminar y confirmar
 - **Ejecutar comandos git**: Confirmar cada operación (add, commit, push, etc.)
 
-### 2. Flujo de Git - NUNCA escribir directo a main
+### 2. Control Total del Repo - Sin Acciones sin Autorización
+**REGLA ABSOLUTA**: NINGUNA acción que modifique el repo se ejecuta sin autorización explícita del usuario.
+
+**Prohibido sin confirmación explícita**:
+- ❌ `git add` (agregar archivos al staging)
+- ❌ `git commit` (crear commits)
+- ❌ `git push` (subir cambios al remoto)
+- ❌ `gh pr create` (crear pull requests)
+- ❌ `gh pr merge` (mergear pull requests)
+- ❌ `git checkout -b` (crear ramas)
+- ❌ Cualquier comando git que modifique el estado del repo
+
+**Flujo obligatorio**:
+```
+1. Agentepropone acción → Muestra qué va a hacer
+2. Usuario autoriza → "sí", "ok", "confirmo", etc.
+3. Agente ejecuta → Solo después de la autorización
+4. Agente reporta → Qué se hizo exitosamente
+```
+
+**Ejemplo de interacción**:
+```
+Agente: "Voy a crear un commit con los siguientes cambios:
+         - Archivo: src/Api/Controllers/ResourceController.cs
+         - Mensaje: feat: add resource controller
+         ¿Autorizas el commit?"
+
+Usuario: "sí"
+
+Agente: Ejecuta git add + git commit
+```
+
+### 3. Flujo de Git - NUNCA escribir directo a main
 
 ```
 ❌ PROHIBIDO:  git push origin main
@@ -22,15 +54,15 @@ Esto incluye:
                gh pr create
 ```
 
-**Flujo obligatorio**:
-1. Crear rama nueva (naming: `feature/`, `fix/`, `chore/`)
-2. Agregar cambios (con confirmación)
-3. Crear commit (con mensaje descriptivo)
-4. Push a la rama
-5. Crear Pull Request
-6. Usuario aprueba y mergea manualmente
+**Flujo obligatorio** (cada paso requiere autorización):
+1. **Crear rama**: Preguntar nombre de rama → Esperar confirmación → `git checkout -b`
+2. **Agregar cambios**: Mostrar archivos → Esperar confirmación → `git add`
+3. **Crear commit**: Mostrar mensaje → Esperar confirmación → `git commit`
+4. **Push**: Mostrar rama destino → Esperar confirmación → `git push`
+5. **Crear PR**: Mostrar título/descripción → Esperar confirmación → `gh pr create`
+6. **Merge**: Usuario aprueba y mergea manualmente en GitHub
 
-### 3. Permisos por Herramienta
+### 4. Permisos por Herramienta
 
 | Herramienta | Permiso | Acción |
 |-------------|---------|--------|
@@ -41,8 +73,9 @@ Esto incluye:
 | `edit` | ⚠️ Ask | Confirmar cada edición |
 | `bash` | ⚠️ Ask | Confirmar cada comando |
 | `write` | ⚠️ Ask | Confirmar cada escritura |
+| `git operations` | 🔒 Deny by default | Requiere autorización explícita |
 
-### 4. Comandos Disponibles
+### 5. Comandos Disponibles
 
 Usar estos comandos para operaciones controladas:
 
@@ -53,7 +86,7 @@ Usar estos comandos para operaciones controladas:
 | `/create` | Crear archivo nuevo |
 | `/delete` | Eliminar archivo con confirmación |
 
-### 5. Reglas Específicas por Tipo de Operación
+### 6. Reglas Específicas por Tipo de Operación
 
 #### Crear Archivo
 ```
@@ -88,14 +121,14 @@ Usar estos comandos para operaciones controladas:
 4. Ejecutar comando
 ```
 
-### 6. Archivos Sensibles - NUNCA tocar
+### 7. Archivos Sensibles - NUNCA tocar
 
 - `.env` o `.env.*`
 - `*password*`, `*secret*`, `*key*`
 - `appsettings.Development.json` (solo mostrar, no editar)
 - Credenciales de任何 tipo
 
-### 7. Naming de Ramas
+### 8. Naming de Ramas
 
 ```
 feature/descripcionbreve    # Nueva funcionalidad
@@ -105,7 +138,7 @@ docs/descripcionbreve       # Documentación
 refactor/descripcionbreve   # Refactorización
 ```
 
-### 8. Mensajes de Commit
+### 9. Mensajes de Commit
 
 Formato:
 ```
@@ -124,7 +157,7 @@ chore: actualizar dependencias
 docs: agregar guía de despliegue
 ```
 
-### 9. Pull Requests
+### 10. Pull Requests
 
 Template mínimo:
 ```markdown

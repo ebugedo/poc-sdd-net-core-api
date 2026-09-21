@@ -5,7 +5,17 @@
   "permission": {
     "edit": "ask",
     "bash": {
-      "git *": "ask",
+      "git status": "allow",
+      "git log *": "allow",
+      "git diff *": "allow",
+      "git branch *": "ask",
+      "git checkout *": "ask",
+      "git add *": "deny",
+      "git commit *": "deny",
+      "git push *": "deny",
+      "git pull *": "deny",
+      "git merge *": "deny",
+      "gh pr *": "deny",
       "dotnet *": "ask",
       "docker *": "ask",
       "*": "ask"
@@ -18,11 +28,21 @@
   "agent": {
     "build": {
       "mode": "primary",
-      "description": "Agente principal para desarrollo de software con restricciones estrictas",
+      "description": "Agente principal para desarrollo de software con restricciones estrictas de repo",
       "permission": {
         "edit": "ask",
         "bash": {
-          "git *": "ask",
+          "git status": "allow",
+          "git log *": "allow",
+          "git diff *": "allow",
+          "git branch *": "ask",
+          "git checkout *": "ask",
+          "git add *": "deny",
+          "git commit *": "deny",
+          "git push *": "deny",
+          "git pull *": "deny",
+          "git merge *": "deny",
+          "gh pr *": "deny",
           "dotnet *": "ask",
           "docker *": "ask",
           "*": "ask"
