@@ -1,71 +1,170 @@
 openapi: 3.0.3
 info:
-  title: API Title
-  description: Descripción de la API
+  title: POC SDD .NET Core API
+  description: API para POC de Spec-Driven Development
   version: 1.0.0
 
 servers:
   - url: http://localhost:5000/api/v1
 
 paths:
-  /:
+  /clients:
     get:
-      summary: Obtener recursos
+      summary: Obtener todos los clientes
+      operationId: getClients
+      tags:
+        - Clients
       responses:
         '200':
-          description: OK
+          description: Lista de clientes
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Resource'
+                  $ref: '#/components/schemas/Client'
     post:
-      summary: Crear recurso
+      summary: Crear un nuevo cliente
+      operationId: createClient
+      tags:
+        - Clients
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateResourceRequest'
+              $ref: '#/components/schemas/CreateClientRequest'
       responses:
         '201':
-          description: Creado
+          description: Cliente creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
         '400':
           $ref: '#/components/responses/BadRequest'
 
-  /{id}:
+  /clients/{id}:
     get:
-      summary: Obtener recurso por ID
+      summary: Obtener cliente por ID
+      operationId: getClientById
+      tags:
+        - Clients
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         '200':
-          description: OK
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Actualizar un cliente
+      operationId: updateClient
+      tags:
+        - Clients
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateClientRequest'
+      responses:
+        '200':
+          description: Cliente actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    delete:
+      summary: Eliminar un cliente
+      operationId: deleteClient
+      tags:
+        - Clients
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Cliente eliminado
         '404':
           $ref: '#/components/responses/NotFound'
 
 components:
   schemas:
-    Resource:
+    Client:
       type: object
       properties:
         id:
           type: string
+          format: uuid
         name:
           type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
 
-    CreateResourceRequest:
+    CreateClientRequest:
       type: object
       required:
         - name
+        - email
       properties:
         name:
           type: string
+          minLength: 1
+          maxLength: 255
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          maxLength: 50
+
+    UpdateClientRequest:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          maxLength: 50
 
     ErrorResponse:
       type: object
