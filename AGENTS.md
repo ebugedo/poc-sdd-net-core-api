@@ -153,6 +153,41 @@ Template mínimo:
 6. Revisar                  → Aprobar y mergear
 ```
 
+## Regla: Actualizar Documentación al Generar Código
+
+**REGLA OBLIGATORIA**: Siempre que se genere o modifique código, se debe actualizar la documentación de SDD correspondiente.
+
+### Qué documentar al escribir código
+
+| Tipo de Código | Documentación a Actualizar |
+|----------------|---------------------------|
+| **Nueva entidad** | `specs/domain/domain-model.md`, `design/data-model/data-model.md` |
+| **Nuevo endpoint** | `specs/api/api-spec.md`, `contracts/api/openapi.yaml` |
+| **Nueva regla de negocio** | `specs/domain/business-rules.md` |
+| **Nuevo flujo** | `specs/features/user-flows.md`, `design/flows/system-flows.md` |
+| **Nueva feature** | `specs/features/user-stories.md` |
+| **Cambio de arquitectura** | `design/architecture/architecture-overview.md`, `decisions/` |
+| **Nuevo comando bash** | `AGENTS.md` sección de comandos |
+
+### Flujo obligatorio al implementar
+
+```
+1. Actualizar specs/     → Reflejar QUÉ se implementa
+2. Actualizar design/    → Reflejar CÓMO se implementa
+3. Actualizar contracts/ → Reflejar contratos formales
+4. Actualizar src/       → Escribir código
+5. Actualizar tests/     → Escribir pruebas
+6. Confirmar documentación antes de commitear
+```
+
+### Checklist antes de cada commit
+
+- [ ] ¿Se creó/modificó una entidad? → Actualizar `specs/domain/domain-model.md`
+- [ ] ¿Se agregó un endpoint? → Actualizar `specs/api/api-spec.md`
+- [ ] ¿Se cambió el modelo de datos? → Actualizar `design/data-model/data-model.md`
+- [ ] ¿Se tomó una decisión técnica? → Crear ADR en `decisions/`
+- [ ] ¿Se modificó la arquitectura? → Actualizar `design/architecture/`
+
 ## Recordatorios
 
 - **SIEMPRE** preguntar antes de escribir

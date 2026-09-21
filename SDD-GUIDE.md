@@ -109,6 +109,65 @@ Aceptado
 [Consecuencias]
 ```
 
+## Regla de Sincronización: Código y Documentación
+
+**REGLA ABSOLUTA**: Toda implementación de código DEBE ir acompañada de actualización de documentación.
+
+### Flujo Obligatorio
+
+```
+Código nuevo/modificado → Documentación actualizada → Commit
+```
+
+### Mapeo de Documentación por Tipo de Cambio
+
+| Cuando implementas... | Actualiza... |
+|----------------------|--------------|
+| Una entidad del dominio | `specs/domain/domain-model.md` + `design/data-model/data-model.md` |
+| Un endpoint de API | `specs/api/api-spec.md` + `contracts/api/openapi.yaml` |
+| Una regla de negocio | `specs/domain/business-rules.md` |
+| Un flujo de usuario | `specs/features/user-flows.md` + `design/flows/system-flows.md` |
+| Una nueva feature | `specs/features/user-stories.md` |
+| Un cambio arquitectónico | `design/architecture/architecture-overview.md` + `decisions/` |
+| Una migración de BD | `design/data-model/data-model.md` |
+
+### Checklist de Sincronización
+
+Antes de cada commit, verificar:
+
+```
+□ ¿Creé una entidad?
+  → Actualizar specs/domain/domain-model.md
+  → Actualizar design/data-model/data-model.md
+
+□ ¿Agregué un endpoint?
+  → Actualizar specs/api/api-spec.md
+  → Actualizar contracts/api/openapi.yaml
+
+□ ¿Agregué una regla de negocio?
+  → Actualizar specs/domain/business-rules.md
+
+□ ¿Implementé un flujo?
+  → Actualizar specs/features/user-flows.md
+  → Actualizar design/flows/system-flows.md
+
+□ ¿Tomé una decisión técnica?
+  → Crear ADR en decisions/
+
+□ ¿Cambié la arquitectura?
+  → Actualizar design/architecture/architecture-overview.md
+```
+
+### Ejemplo
+
+Si creas una entidad `Product`:
+
+1. **Antes del código**: Actualizar `specs/domain/domain-model.md` con la definición
+2. **Crear código**: Crear `Product.cs` en Domain/Entities
+3. **Actualizar diseño**: Actualizar `design/data-model/data-model.md` con la tabla
+4. **Actualizar API**: Si tiene endpoint, actualizar `specs/api/api-spec.md`
+5. **Commit**: Incluir código Y documentación juntos
+
 ## Consejos
 
 1. **Empieza por las specs**: Antes de escribir código, define qué debe hacer
@@ -116,3 +175,4 @@ Aceptado
 3. **Documenta decisiones**: Los ADRs ayudan a entender el "por qué"
 4. **Mantén actualizado**: Las specs deben reflejar el estado actual
 5. **Usa lenguaje natural**: Las specs deben ser entendibles por todos
+6. **Sincroniza siempre**: Código y documentación deben ir de la mano
