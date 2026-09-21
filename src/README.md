@@ -3,7 +3,10 @@
 ## Stack Tecnológico
 - **Framework**: ASP.NET Core 8.0
 - **Patrón**: Domain-Driven Design (DDD) + Clean Architecture
+- **DI Container**: Autofac
 - **ORM**: Entity Framework Core 8.0
+- **Mapping**: AutoMapper
+- **API Docs**: Swagger (Swashbuckle)
 - **Base de Datos**: PostgreSQL
 
 ## Estructura del Proyecto
@@ -148,10 +151,22 @@ dotnet new classlib -n Domain
 dotnet new classlib -n Application
 dotnet new classlib -n Infrastructure
 
-# Agregar paquetes NuGet
+# Agregar paquetes NuGet - Core
 dotnet add package Microsoft.EntityFrameworkCore
 dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
 dotnet add package Microsoft.EntityFrameworkCore.Design
+
+# Agregar paquetes NuGet - API
+dotnet add package Swashbuckle.AspNetCore
+dotnet add package Swashbuckle.AspNetCore.Filters
+
+# Agregar paquetes NuGet - DI
+dotnet add package Autofac
+dotnet add package Autofac.Extensions.DependencyInjection
+
+# Agregar paquetes NuGet - Mapping
+dotnet add package AutoMapper
+dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection
 
 # Ejecutar
 dotnet run --project src/Api

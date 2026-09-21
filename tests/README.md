@@ -3,7 +3,8 @@
 ## Stack de Pruebas
 - **Framework**: xUnit
 - **Mocking**: Moq
-- **Assertions**: xUnit Assert + FluentAssertions (opcional)
+- **Fake Data**: Bogus
+- **Assertions**: FluentAssertions
 - **Integration Tests**: WebApplicationFactory + Testcontainers (PostgreSQL)
 
 ## Tipos de Pruebas
@@ -87,11 +88,15 @@ dotnet test /p:CollectCoverage=true
 dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
 ```
 
-## Ejemplo de Prueba Unitaria
+## Ejemplo de Prueba Unitaria con Bogus y FluentAssertions
 
 ```csharp
 public class ResourceTests
 {
+    private readonly Faker<Resource> _resourceFaker = new Faker<Resource>()
+        .RuleFor(r => r.Id, f => Guid.NewGuid())
+        .RuleFor(r => r.Name, f => f.Lorem.Word());
+
     [Fact]
     public void Create_ShouldCreateResource_WhenNameIsValid()
     {
@@ -102,9 +107,9 @@ public class ResourceTests
         var resource = Resource.Create(name);
         
         // Assert
-        Assert.NotNull(resource);
-        Assert.Equal("Test Resource", resource.Name.Value);
-        Assert.NotEqual(Guid.Empty, resource.Id);
+        resource.Should().NotBeNull();
+        resource.Name.Value.Should().Be("Test Resource");
+        resource.Id.Should().NotBeEmpty();
     }
     
     [Theory]
@@ -113,13 +118,25 @@ public class ResourceTests
     public void Create_ShouldThrowException_WhenNameIsInvalid(string invalidName)
     {
         // Arrange & Act & Assert
-        Assert.Throws<DomainException>(() => 
-            Resource.Create(new ResourceName(invalidName)));
+        var act = () => Resource.Create(new ResourceName(invalidName));
+        act.Should().Throw<DomainException>();
+    }
+    
+    [Fact]
+    public void Create_ShouldGenerateUniqueIds()
+    {
+        // Arrange & Act
+        var resources = Enumerable.Range(0, 10)
+            .Select(_ => Resource.Create(new ResourceName("Test")))
+            .ToList();
+        
+        // Assert
+        resources.Select(r => r.Id).Should().OnlyHaveUniqueItems();
     }
 }
 ```
 
-## Ejemplo de Prueba con Mock
+## Ejemplo de Prueba con Mock y Bogus
 
 ```csharp
 public class CreateResourceUseCaseTests
@@ -127,25 +144,28 @@ public class CreateResourceUseCaseTests
     private readonly Mock<IResourceRepository> _repositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly CreateResourceUseCase _sut;
+    private readonly Faker<CreateResourceRequest> _requestFaker;
     
     public CreateResourceUseCaseTests()
     {
         _repositoryMock = new Mock<IResourceRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _sut = new CreateResourceUseCase(_repositoryMock.Object, _unitOfWorkMock.Object);
+        _requestFaker = new Faker<CreateResourceRequest>()
+            .RuleFor(r => r.Name, f => f.Lorem.Word());
     }
     
     [Fact]
     public async Task Execute_ShouldCreateResource_WhenValidRequest()
     {
         // Arrange
-        var request = new CreateResourceRequest { Name = "Test" };
+        var request = _requestFaker.Generate();
         
         // Act
         var result = await _sut.ExecuteAsync(request);
         
         // Assert
-        Assert.NotNull(result);
+        result.Should().NotBeNull();
         _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Resource>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
     }
