@@ -1,39 +1,83 @@
 # Especificación de API
 
 ## Información General
-- **Versión**: 
-- **Base URL**: 
+- **Versión**: 1.0.0
+- **Base URL**: http://localhost:5000/api/v1
 - **Formato**: JSON
 
-## Endpoints
+## Endpoints - Clientes
 
-### GET /
-- **Descripción**: 
+### GET /api/v1/clients
+- **Descripción**: Obtener lista de todos los clientes
+- **Parámetros**: Ninguno
+- **Response 200**: 
+  ```json
+  [
+    {
+      "id": "uuid",
+      "name": "string",
+      "email": "string",
+      "phone": "string",
+      "createdAt": "2024-01-01T00:00:00Z"
+    }
+  ]
+  ```
+- **Response 500**: Error interno del servidor
+
+### GET /api/v1/clients/{id}
+- **Descripción**: Obtener un cliente por su ID
 - **Parámetros**: 
+  - `id` (path, uuid, requerido): Identificador del cliente
 - **Response 200**: 
-- **Response 400**: 
-- **Response 500**: 
+  ```json
+  {
+    "id": "uuid",
+    "name": "string",
+    "email": "string",
+    "phone": "string",
+    "createdAt": "2024-01-01T00:00:00Z"
+  }
+  ```
+- **Response 404**: Cliente no encontrado
 
-### POST /
-- **Descripción**: 
+### POST /api/v1/clients
+- **Descripción**: Crear un nuevo cliente
 - **Request Body**: 
-- **Response 201**: 
-- **Response 400**: 
-- **Response 409**: 
+  ```json
+  {
+    "name": "string (requerido)",
+    "email": "string (requerido)",
+    "phone": "string (opcional)"
+  }
+  ```
+- **Response 201**: Cliente creado exitosamente
+- **Response 400**: Datos de entrada inválidos
 
-### PUT /{id}
-- **Descripción**: 
+### PUT /api/v1/clients/{id}
+- **Descripción**: Actualizar un cliente existente
+- **Parámetros**: 
+  - `id` (path, uuid, requerido): Identificador del cliente
 - **Request Body**: 
-- **Response 200**: 
-- **Response 404**: 
+  ```json
+  {
+    "name": "string (requerido)",
+    "email": "string (requerido)",
+    "phone": "string (opcional)"
+  }
+  ```
+- **Response 200**: Cliente actualizado exitosamente
+- **Response 404**: Cliente no encontrado
+- **Response 400**: Datos de entrada inválidos
 
-### DELETE /{id}
-- **Descripción**: 
-- **Response 204**: 
-- **Response 404**: 
+### DELETE /api/v1/clients/{id}
+- **Descripción**: Eliminar un cliente
+- **Parámetros**: 
+  - `id` (path, uuid, requerido): Identificador del cliente
+- **Response 204**: Cliente eliminado exitosamente
+- **Response 404**: Cliente no encontrado
 
 ## Autenticación
-<!-- Describe el mecanismo de autenticación -->
+<!-- Pendiente de implementar -->
 
 ## Rate Limiting
-<!-- Límites de velocidad -->
+<!-- Pendiente de implementar -->
