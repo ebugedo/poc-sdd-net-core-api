@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using poc_sdd_net_core_api.Domain.Entities;
 using poc_sdd_net_core_api.Domain.Interfaces;
+using poc_sdd_net_core_api.Infrastructure.Data;
 
 namespace poc_sdd_net_core_api.Infrastructure.Repositories;
 

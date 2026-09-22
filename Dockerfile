@@ -2,16 +2,17 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy project files and restore dependencies
-COPY ["src/Api/Api.csproj", "src/Api/"]
+# Copy solution and project files and restore dependencies
+COPY ["poc-sdd-net-core-api.slnx", "./"]
+COPY ["src/api/Api.csproj", "src/api/"]
 COPY ["src/Application/Application.csproj", "src/Application/"]
-COPY ["src/Domain/Domain.csproj", "src/Domain/"]
-COPY ["src/Infrastructure/Infrastructure.csproj", "src/Infrastructure/"]
-RUN dotnet restore "src/Api/Api.csproj"
+COPY ["src/domain/Domain.csproj", "src/domain/"]
+COPY ["src/infrastructure/Infrastructure.csproj", "src/infrastructure/"]
+RUN dotnet restore "poc-sdd-net-core-api.slnx"
 
 # Copy source code and build
-COPY src/ .
-WORKDIR "/src/Api"
+COPY src/ ./src/
+WORKDIR "/src/api"
 RUN dotnet build "Api.csproj" -c Release -o /app/build
 
 # Publish stage
