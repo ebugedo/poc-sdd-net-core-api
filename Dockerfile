@@ -3,12 +3,13 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy solution and project files and restore dependencies
+COPY ["poc-sdd-net-core-api.sln", "./"]
 COPY ["poc-sdd-net-core-api.slnx", "./"]
 COPY ["src/api/Api.csproj", "src/api/"]
 COPY ["src/Application/Application.csproj", "src/Application/"]
 COPY ["src/domain/Domain.csproj", "src/domain/"]
 COPY ["src/infrastructure/Infrastructure.csproj", "src/infrastructure/"]
-RUN dotnet restore "poc-sdd-net-core-api.slnx"
+RUN dotnet restore "poc-sdd-net-core-api.sln"
 
 # Copy source code and build
 COPY src/ ./src/
