@@ -116,5 +116,12 @@ src/
     └── Migrations/              # Migraciones EF Core
 ```
 
+## Despliegue
+
+- **Container**: Docker, `Dockerfile:36` expone 8080
+- **Red**: `nginx-net` (externa) para que `poc-sdd-api` sea alcanzable por nginx reverse proxy
+- **Proxy**: nginx en `nginx-net` hace `proxy_pass http://poc-sdd-api:8080` (`docs/deployment.md:122`)
+- **DB**: PostgreSQL externo en host, API conecta vía `host.docker.internal:5432` con `--add-host`
+
 ## Decisiones Técnicas
 Ver `/decisions/` para decisiones de arquitectura documentadas.

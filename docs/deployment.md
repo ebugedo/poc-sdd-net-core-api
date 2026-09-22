@@ -19,10 +19,10 @@
 │                    VPS (Producción) │                        │
 │  ┌──────────────────────────────────┼─────────────────────┐ │
 │  │  ┌───────────────────────────────┼──────────────────┐  │ │
-│  │  │  Docker: poc-sdd-api (8080)   │                  │  │ │
+│  │  │  Docker: poc-sdd-api (8080)   │  nginx-net       │  │ │
 │  │  │  ┌───────────────────────┐    │                  │  │ │
 │  │  │  │  ASP.NET Core API     │────┼──host.docker.internal──┼──┐
-│  │  │  │  Program + Startup    │    │  :5432           │  │  │
+│  │  │  │  Program + Startup    │◀───┼──nginx:80/443    │  │  │
 │  │  │  └───────────────────────┘    │                  │  │  │
 │  │  └───────────────────────────────┼──────────────────┘  │ │
 │  │                                  │                     │ │
@@ -30,6 +30,7 @@
 │  │  │  Docker: postgres (5432)      │  (ya desplegado) │  │ │
 │  │  │  PostgreSQL 16 - externo      ◀──────────────────┘  │ │
 │  │  └──────────────────────────────────────────────────┘  │ │
+│  │  nginx (host) ── proxy_pass http://poc-sdd-api:8080 (nginx-net) │ │
 │  └───────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -101,10 +102,11 @@ docker-compose logs -f api
 docker-compose down
 ```
 
-### Producción (VPS)
+### Producción (VPS) - Red nginx-net
 ```bash
-# Ver contenedores
+# Ver contenedores y red
 docker ps
+docker network inspect nginx-net
 
 # Ver logs
 docker logs -f poc-sdd-api
@@ -112,11 +114,30 @@ docker logs -f poc-sdd-api
 # Reiniciar
 docker restart poc-sdd-api
 
-# Actualizar manualmente (PostgreSQL externo)
+# Actualizar manualmente (PostgreSQL externo, red nginx-net)
 docker pull ghcr.io/tu-usuario/poc-sdd-net-core-api:latest
 docker stop poc-sdd-api
 docker rm poc-sdd-api
-docker run -d --name poc-sdd-api --restart unless-stopped --add-host=host.docker.internal:host-gateway -p 8080:8080 -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=poc_sdd;Username=postgres;Password=xxx" ghcr.io/tu-usuario/poc-sdd-net-core-api:latest
+docker network create nginx-net || true
+docker run -d --name poc-sdd-api --restart unless-stopped --network nginx-net --add-host=host.docker.internal:host-gateway -p 8080:8080 -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=poc_sdd;Username=postgres;Password=xxx" ghcr.io/tu-usuario/poc-sdd-net-core-api:latest
+```
+
+### Nginx Reverse Proxy (nginx-net)
+```nginx
+# /etc/nginx/sites-available/api
+server {
+    listen 80;
+    server_name tu-dominio.com;
+    location /api/ {
+        proxy_pass http://poc-sdd-api:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+    location /swagger/ { proxy_pass http://poc-sdd-api:8080; }
+}
+# Requiere: docker network create nginx-net (ya creado por deploy)
+# nginx debe estar en nginx-net: docker network connect nginx-net nginx  # si nginx es container
+# o si nginx es host, usa proxy_pass http://localhost:8080 y red no necesaria para host
 ```
 
 ## Variables de Entorno

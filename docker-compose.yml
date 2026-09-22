@@ -19,7 +19,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # API - Desarrollo local
+  # API - Desarrollo local (en nginx-net para prod)
   api:
     build:
       context: .
@@ -35,6 +35,14 @@ services:
         condition: service_healthy
     volumes:
       - ./src:/app/src:ro
+    networks:
+      - nginx-net
+      - default
+
+networks:
+  nginx-net:
+    external: true
+    name: nginx-net
 
 volumes:
   postgres_data:
