@@ -85,7 +85,6 @@ Agente: Ejecuta git add + git commit
 ```bash
 gh pr list --head <nombre-rama>  # Si devuelve PR, NO hacer push, crear nueva rama
 ```
-
 ### 4. Permisos por Herramienta
 
 | Herramienta | Permiso | Acción |
