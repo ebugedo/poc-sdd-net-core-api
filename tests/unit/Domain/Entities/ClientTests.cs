@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Xunit;
 using poc_sdd_net_core_api.Domain.Entities;
 
 namespace poc_sdd_net_core_api.Tests.Unit.Domain.Entities;

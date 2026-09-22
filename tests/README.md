@@ -48,25 +48,21 @@ Pruebas de aceptación que verifican los requisitos del negocio.
 tests/
 ├── unit/
 │   ├── Domain/
-│   │   ├── Entities/
-│   │   │   └── ResourceTests.cs
-│   │   ├── ValueObjects/
-│   │   │   └── ResourceNameTests.cs
-│   │   └── Specifications/
-│   │       └── ValidResourceSpecificationTests.cs
+│   │   └── Entities/
+│   │       └── ClientTests.cs              # xUnit + FluentAssertions
 │   └── Application/
 │       └── Services/
-│           └── CreateResourceUseCaseTests.cs
+│           └── ClientServiceTests.cs       # xUnit + Moq + Bogus + FluentAssertions
 │
 ├── integration/
 │   ├── Repositories/
-│   │   └── ResourceRepositoryTests.cs
+│   │   └── ClientRepositoryTests.cs        # futuro Testcontainers
 │   └── Api/
-│       └── ResourceControllerTests.cs
+│       └── ClientsControllerTests.cs       # futuro WebApplicationFactory
 │
 └── acceptance/
     └── Features/
-        └── ResourceFeatureTests.cs
+        └── ClientFeatureTests.cs           # futuro
 ```
 
 ## Ejecución
@@ -136,38 +132,42 @@ public class ResourceTests
 }
 ```
 
-## Ejemplo de Prueba con Mock y Bogus
+## Ejemplo de Prueba con Mock y Bogus (Moq)
 
 ```csharp
-public class CreateResourceUseCaseTests
+public class ClientServiceTests
 {
-    private readonly Mock<IResourceRepository> _repositoryMock;
+    private readonly Mock<IClientRepository> _repositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-    private readonly CreateResourceUseCase _sut;
-    private readonly Faker<CreateResourceRequest> _requestFaker;
+    private readonly ClientService _sut;
+    private readonly Faker<CreateClientRequest> _requestFaker;
     
-    public CreateResourceUseCaseTests()
+    public ClientServiceTests()
     {
-        _repositoryMock = new Mock<IResourceRepository>();
+        _repositoryMock = new Mock<IClientRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
-        _sut = new CreateResourceUseCase(_repositoryMock.Object, _unitOfWorkMock.Object);
-        _requestFaker = new Faker<CreateResourceRequest>()
-            .RuleFor(r => r.Name, f => f.Lorem.Word());
+        _sut = new ClientService(_repositoryMock.Object, _unitOfWorkMock.Object);
+        _requestFaker = new Faker<CreateClientRequest>()
+            .RuleFor(r => r.Name, f => f.Name.FullName())
+            .RuleFor(r => r.Email, f => f.Internet.Email());
     }
     
     [Fact]
-    public async Task Execute_ShouldCreateResource_WhenValidRequest()
+    public async Task CreateAsync_ShouldCreateAndReturnClient()
     {
         // Arrange
         var request = _requestFaker.Generate();
-        
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Client>())).ReturnsAsync((Client c) => c);
+        _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
         // Act
-        var result = await _sut.ExecuteAsync(request);
+        var result = await _sut.CreateAsync(request);
         
         // Assert
         result.Should().NotBeNull();
-        _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Resource>()), Times.Once);
-        _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
+        result.Name.Should().Be(request.Name);
+        _repositoryMock.Verify(r => r.AddAsync(It.Is<Client>(c => c.Name == request.Name)), Times.Once);
+        _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
 ```
