@@ -99,10 +99,12 @@ jobs:
             docker stop poc-sdd-api || true
             docker rm poc-sdd-api || true
             
-            # Ejecutar nuevo contenedor (PostgreSQL ya existe externo - no se crea)
+            # Ejecutar nuevo contenedor (PostgreSQL ya existe externo - red nginx-net)
+            docker network create nginx-net || true
             docker run -d \
               --name poc-sdd-api \
               --restart unless-stopped \
+              --network nginx-net \
               --add-host=host.docker.internal:host-gateway \
               -p 8080:8080 \
               -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=poc_sdd;Username=postgres;Password=${{ secrets.DB_PASSWORD }}" \
