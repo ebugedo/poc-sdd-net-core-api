@@ -40,8 +40,10 @@
 
 ### API Layer (Presentation)
 - **Responsabilidad**: Recibir peticiones HTTP, retornar respuestas
-- **Tecnología**: ASP.NET Core 8.0
-- **Componentes**: Controllers, DTOs, Middleware, Filters, Program.cs
+- **Tecnología**: ASP.NET Core 8.0 (patrón clásico Program + Startup)
+- **Componentes**: Controllers, DTOs, Middleware, Filters, Program.cs, Startup.cs
+  - `Program.cs`: HostBuilder, `UseServiceProviderFactory(AutofacServiceProviderFactory)`, `UseStartup<Startup>()`
+  - `Startup.cs`: `ConfigureContainer` (Autofac), `ConfigureServices` (EF Core, AutoMapper, Swagger), `Configure` (Swagger, Routing)
 - **API Docs**: Swagger (Swashbuckle) para documentación OpenAPI
 - **DI Container**: Autofac para dependency injection
 
@@ -86,12 +88,13 @@
 
 ```
 src/
-├── Api/                          # ASP.NET Core Web API
+├── Api/                          # ASP.NET Core Web API (Program + Startup)
 │   ├── Controllers/             # Endpoints HTTP
 │   ├── DTOs/                    # Data Transfer Objects
 │   ├── Filters/                 # Action filters
 │   ├── Middleware/               # Middleware custom
-│   └── Program.cs               # Configuración
+│   ├── Program.cs               # HostBuilder + Autofac factory
+│   └── Startup.cs               # ConfigureServices / ConfigureContainer / Configure
 │
 ├── Application/                  # Capa de aplicación
 │   ├── Interfaces/              # Puertos de entrada/salida

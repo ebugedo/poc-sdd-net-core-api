@@ -149,10 +149,11 @@ dotnet ef migrations script --project src/Infrastructure --startup-project src/A
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=poc_sdd;Username=postgres;Password=password"
+    "DefaultConnection": "Host=host.docker.internal;Port=5432;Database=poc_sdd;Username=postgres;Password=password"
   }
 }
 ```
+> **Nota VPS**: PostgreSQL está en container externo (`docs/deployment.md:78`). Desarrollo local con `docker-compose.yml:14` usa `Host=postgres`, producción usa `host.docker.internal` con `--add-host=host.docker.internal:host-gateway` (`Dockerfile:39` expone 8080).
 
 ### DbContext Configuration
 ```csharp

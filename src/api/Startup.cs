@@ -1,0 +1,72 @@
+using Autofac;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using poc_sdd_net_core_api.Application.Services;
+using poc_sdd_net_core_api.Domain.Interfaces;
+using poc_sdd_net_core_api.Infrastructure.Data;
+using poc_sdd_net_core_api.Infrastructure.Repositories;
+
+namespace poc_sdd_net_core_api.Api;
+
+public class Startup
+{
+    public Startup(IConfiguration configuration)
+    {
+        Configuration = configuration;
+    }
+
+    public IConfiguration Configuration { get; }
+
+    public void ConfigureContainer(ContainerBuilder builder)
+    {
+        // Autofac registrations
+        builder.RegisterType<ClientRepository>().As<IClientRepository>().InstancePerLifetimeScope();
+        builder.RegisterType<ClientService>().InstancePerLifetimeScope();
+        // IUnitOfWork -> ApplicationDbContext (already registered as DbContext)
+        builder.Register(c => c.Resolve<ApplicationDbContext>()).As<IUnitOfWork>().InstancePerLifetimeScope();
+    }
+
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddControllers();
+
+        // EF Core + PostgreSQL
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseNpgsql(
+                Configuration.GetConnectionString("DefaultConnection"),
+                b => b.MigrationsAssembly("Infrastructure")));
+
+        // AutoMapper - scans ClientMappingProfile
+        services.AddAutoMapper(typeof(Application.Mappings.ClientMappingProfile).Assembly);
+
+        // Swagger - siempre habilitado para POC (útil tras nginx)
+        services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "POC SDD API", Version = "v1" });
+        });
+
+        services.AddEndpointsApiExplorer();
+
+        // Health checks
+        services.AddHealthChecks();
+    }
+
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+        }
+
+        app.UseSwagger();
+        app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "POC SDD API v1"));
+
+        app.UseRouting();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+            endpoints.MapHealthChecks("/health");
+        });
+    }
+}
