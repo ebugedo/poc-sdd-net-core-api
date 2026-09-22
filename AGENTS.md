@@ -62,6 +62,29 @@ Agente: Ejecuta git add + git commit
 5. **Crear PR**: Mostrar título/descripción → Esperar confirmación → `gh pr create`
 6. **Merge**: Usuario aprueba y mergea manualmente en GitHub
 
+### 3.1 Inmutabilidad de PR - PROHIBIDO modificar PR existente
+**REGLA ABSOLUTA**: Una vez creada una PR, es inmutable. NUNCA se hace push adicional a esa rama ni se modifica su código.
+
+**Prohibido sin excepción**:
+- ❌ `git push origin fix/rama-existente` cuando ya existe PR para esa rama
+- ❌ `git commit --amend` + push a rama con PR
+- ❌ `gh pr edit` para modificar código (solo título/descripción permitido, nunca código)
+- ❌ Cualquier push que altere una PR abierta o cerrada
+
+**Flujo obligatorio para cualquier corrección post-PR**:
+```
+1. Dejar PR anterior intacta (no tocar)
+2. git checkout main && git pull
+3. git checkout -b fix/descripcion-v2  # NUEVA rama siempre
+4. Re-aplicar cambios + correcciones
+5. git add / git commit / git push (con autorización paso a paso)
+6. gh pr create (NUEVA PR, referencia a PR anterior en descripción)
+```
+
+**Verificación antes de push**:
+```bash
+gh pr list --head <nombre-rama>  # Si devuelve PR, NO hacer push, crear nueva rama
+```
 ### 4. Permisos por Herramienta
 
 | Herramienta | Permiso | Acción |

@@ -12,10 +12,13 @@
       "git checkout *": "ask",
       "git add *": "deny",
       "git commit *": "deny",
+      "git commit --amend *": "deny",
       "git push *": "deny",
+      "git push --force *": "deny",
       "git pull *": "deny",
       "git merge *": "deny",
       "gh pr *": "deny",
+      "gh pr edit *": "deny",
       "dotnet *": "ask",
       "docker *": "ask",
       "*": "ask"
@@ -28,7 +31,7 @@
   "agent": {
     "build": {
       "mode": "primary",
-      "description": "Agente principal para desarrollo de software con restricciones estrictas de repo",
+      "description": "Agente principal con PR inmutable: nunca push a rama con PR existente, siempre nueva rama+PR",
       "permission": {
         "edit": "ask",
         "bash": {
@@ -39,10 +42,13 @@
           "git checkout *": "ask",
           "git add *": "deny",
           "git commit *": "deny",
+          "git commit --amend *": "deny",
           "git push *": "deny",
+          "git push --force *": "deny",
           "git pull *": "deny",
           "git merge *": "deny",
           "gh pr *": "deny",
+          "gh pr edit *": "deny",
           "dotnet *": "ask",
           "docker *": "ask",
           "*": "ask"
