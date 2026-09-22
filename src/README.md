@@ -19,7 +19,8 @@ src/
 │   ├── Filters/                 # Action filters (validación, logging)
 │   ├── Middleware/               # Middleware (error handling, auth)
 │   ├── Extensions/              # Extension methods
-│   ├── Program.cs               # Entry point, DI container
+│   ├── Program.cs               # Entry point (HostBuilder + Autofac, delega a Startup)
+│   ├── Startup.cs               # Registro servicios (EF Core, AutoMapper, Swagger, HealthChecks) y pipeline
 │   └── appsettings.json         # Configuración
 │
 ├── Application/                  # Capa de aplicación
@@ -36,32 +37,23 @@ src/
 │
 ├── Domain/                       # Dominio puro (SIN dependencias)
 │   ├── Entities/                # Entidades con identidad
-│   │   └── Resource.cs
-│   ├── ValueObjects/            # Value Objects (inmutables)
-│   │   ├── ResourceName.cs
-│   │   └── AuditInfo.cs
-│   ├── Aggregates/              # Agregados (raíz + entidades)
-│   │   └── ResourceAggregate.cs
-│   ├── Events/                  # Domain Events
-│   │   ├── ResourceCreatedEvent.cs
-│   │   └── ResourceDeletedEvent.cs
-│   ├── Services/                # Domain Services (lógica de negocio)
-│   │   └── ResourceDomainService.cs
-│   ├── Specifications/          # Specifications (reglas reutilizables)
-│   │   ├── ResourceNameSpecification.cs
-│   │   └── ValidResourceSpecification.cs
+│   │   └── Client.cs            # Entidad actual (Resource ejemplo removido)
+│   ├── ValueObjects/            # Value Objects (inmutables) - futuro Email, PhoneNumber
+│   ├── Aggregates/              # Agregados (raíz + entidades) - futuro
+│   ├── Events/                  # Domain Events - futuro
+│   ├── Services/                # Domain Services (lógica de negocio) - futuro
+│   ├── Specifications/          # Specifications (reglas reutilizables) - futuro
 │   └── Interfaces/              # Interfaces (puertos de salida)
-│       ├── IRepository.cs
-│       └── IUnitOfWork.cs
+│       └── IClientRepository.cs # IClientRepository + IUnitOfWork
 │
 └── Infrastructure/               # Capa de infraestructura
     ├── Data/                    # Configuración EF Core
-    │   ├── ApplicationDbContext.cs
+    │   ├── ApplicationDbContext.cs # Implements IUnitOfWork
     │   ├── Configurations/      # IEntityTypeConfiguration
-    │   │   └── ResourceConfiguration.cs
+    │   │   └── ClientConfiguration.cs
     │   └── Seeders/             # Datos iniciales
     ├── Repositories/            # Implementación de repositorios
-    │   └── ResourceRepository.cs
+    │   └── ClientRepository.cs
     └── Migrations/              # Migraciones EF Core
         └── ... (archivos generados)
 ```

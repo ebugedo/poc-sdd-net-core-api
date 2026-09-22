@@ -18,20 +18,18 @@
 ┌─────────────────────────────────────┼───────────────────────┐
 │                    VPS (Producción) │                        │
 │  ┌──────────────────────────────────┼─────────────────────┐ │
-│  │                                  ▼                     │ │
-│  │  ┌─────────────────────────────────────────────────┐  │ │
-│  │  │              Docker Container                   │  │ │
-│  │  │  ┌───────────────────────────────────────────┐  │  │ │
-│  │  │  │           ASP.NET Core API                │  │  │ │
-│  │  │  │              (8080)                       │  │  │ │
-│  │  │  └────────────────────┬──────────────────────┘  │  │ │
-│  │  │                       │                         │  │ │
-│  │  │                       ▼                         │  │ │
-│  │  │  ┌───────────────────────────────────────────┐  │  │ │
-│  │  │  │      PostgreSQL Container (5432)          │  │  │ │
-│  │  │  │              (ya desplegado)              │  │  │ │
-│  │  │  └───────────────────────────────────────────┘  │  │ │
-│  │  └─────────────────────────────────────────────────┘  │ │
+│  │  ┌───────────────────────────────┼──────────────────┐  │ │
+│  │  │  Docker: poc-sdd-api (8080)   │                  │  │ │
+│  │  │  ┌───────────────────────┐    │                  │  │ │
+│  │  │  │  ASP.NET Core API     │────┼──host.docker.internal──┼──┐
+│  │  │  │  Program + Startup    │    │  :5432           │  │  │
+│  │  │  └───────────────────────┘    │                  │  │  │
+│  │  └───────────────────────────────┼──────────────────┘  │ │
+│  │                                  │                     │ │
+│  │  ┌───────────────────────────────┼──────────────────┐  │ │
+│  │  │  Docker: postgres (5432)      │  (ya desplegado) │  │ │
+│  │  │  PostgreSQL 16 - externo      ◀──────────────────┘  │ │
+│  │  └──────────────────────────────────────────────────┘  │ │
 │  └───────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -75,21 +73,18 @@ En tu repo de GitHub → Settings → Secrets and variables → Actions:
 | `VPS_SSH_KEY` | Clave SSH privada |
 | `DB_PASSWORD` | Password de PostgreSQL |
 
-### 3. Verificar PostgreSQL en VPS
+### 3. PostgreSQL en VPS (ya desplegado)
+> **Nota**: PostgreSQL ya está corriendo en un container independiente en el VPS. No se despliega ni se gestiona desde este repo.
+
 ```bash
 # Verificar que PostgreSQL está corriendo
 docker ps | grep postgres
+# Debe mostrar: postgres  0.0.0.0:5432->5432/tcp
 
-# Si no está corriendo, iniciarlo:
-docker run -d \
-  --name postgres \
-  --restart unless-stopped \
-  -p 5432:5432 \
-  -e POSTGRES_DB=poc_sdd \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=tu-password \
-  -v postgres_data:/var/lib/postgresql/data \
-  postgres:16-alpine
+# Ver logs si es necesario
+docker logs postgres
+
+# La API se conecta vía host.docker.internal:5432 (ver --add-host en deploy)
 ```
 
 ## Comandos Útiles
@@ -117,19 +112,20 @@ docker logs -f poc-sdd-api
 # Reiniciar
 docker restart poc-sdd-api
 
-# Actualizar manualmente
+# Actualizar manualmente (PostgreSQL externo)
 docker pull ghcr.io/tu-usuario/poc-sdd-net-core-api:latest
 docker stop poc-sdd-api
 docker rm poc-sdd-api
-docker run -d --name poc-sdd-api --restart unless-stopped -p 8080:8080 ghcr.io/tu-usuario/poc-sdd-net-core-api:latest
+docker run -d --name poc-sdd-api --restart unless-stopped --add-host=host.docker.internal:host-gateway -p 8080:8080 -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=poc_sdd;Username=postgres;Password=xxx" ghcr.io/tu-usuario/poc-sdd-net-core-api:latest
 ```
 
 ## Variables de Entorno
 
-### Producción
+### Producción (PostgreSQL externo)
 ```bash
 ASPNETCORE_ENVIRONMENT=Production
-ConnectionStrings__DefaultConnection=Host=localhost;Port=5432;Database=poc_sdd;Username=postgres;Password=xxx
+ConnectionStrings__DefaultConnection=Host=host.docker.internal;Port=5432;Database=poc_sdd;Username=postgres;Password=xxx
+# Requiere --add-host=host.docker.internal:host-gateway en docker run
 ```
 
 ## Health Check
@@ -154,14 +150,18 @@ Respuesta esperada:
 docker logs poc-sdd-api
 ```
 
-### No conecta a PostgreSQL
+### No conecta a PostgreSQL (container externo)
 ```bash
 # Verificar que PostgreSQL está corriendo
 docker ps | grep postgres
 
-# Probar conexión
+# Probar conexión desde la API hacia host.docker.internal
 docker exec -it poc-sdd-api bash
-curl http://localhost:5432
+apt-get update && apt-get install -y postgresql-client
+psql "host=host.docker.internal port=5432 dbname=poc_sdd user=postgres" -c "SELECT 1"
+
+# Verificar que el mapping existe
+docker inspect poc-sdd-api | grep host.docker.internal
 ```
 
 ### Puertos en conflicto
