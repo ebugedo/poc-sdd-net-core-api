@@ -1,0 +1,59 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "build",
+  "instructions": ["AGENTS.md"],
+  "permission": {
+    "edit": "ask",
+    "bash": {
+      "git status": "allow",
+      "git log *": "allow",
+      "git diff *": "allow",
+      "git branch *": "ask",
+      "git checkout *": "ask",
+      "git add *": "deny",
+      "git commit *": "deny",
+      "git commit --amend *": "deny",
+      "git push *": "deny",
+      "git push --force *": "deny",
+      "git pull *": "deny",
+      "git merge *": "deny",
+      "gh pr *": "deny",
+      "gh pr edit *": "deny",
+      "dotnet *": "ask",
+      "docker *": "ask",
+      "*": "ask"
+    },
+    "read": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow"
+  },
+  "agent": {
+    "build": {
+      "mode": "primary",
+      "description": "Agente principal con PR inmutable: nunca push a rama con PR existente, siempre nueva rama+PR",
+      "permission": {
+        "edit": "ask",
+        "bash": {
+          "git status": "allow",
+          "git log *": "allow",
+          "git diff *": "allow",
+          "git branch *": "ask",
+          "git checkout *": "ask",
+          "git add *": "deny",
+          "git commit *": "deny",
+          "git commit --amend *": "deny",
+          "git push *": "deny",
+          "git push --force *": "deny",
+          "git pull *": "deny",
+          "git merge *": "deny",
+          "gh pr *": "deny",
+          "gh pr edit *": "deny",
+          "dotnet *": "ask",
+          "docker *": "ask",
+          "*": "ask"
+        }
+      }
+    }
+  }
+}
