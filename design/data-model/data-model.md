@@ -90,21 +90,47 @@ dotnet ef migrations script --project src/Infrastructure --startup-project src/A
 ```
 
 ### Convenciones de Migraciones
-- Nombre descriptivo: `AddResourceEntity`, `AddClientEntity`
+- Nombre descriptivo: `InitialCreate`, `AddClientEntity`
 - Revisar el script SQL antes de aplicar en producción
 - Siempre hacer backup antes de migrar en producción
 
+### Aplicación Automática en Primera Ejecución
+Las migraciones se aplican automáticamente al iniciar la API vía `Startup.cs:54` `db.Database.Migrate()` (`src/api/Startup.cs:54`). En la primera ejecución se crean las tablas (`clients`) sin intervención manual. Ver `src/infrastructure/Migrations/20260923102117_InitialCreate.cs`.
+
 ## Conexión a PostgreSQL
 
-### appsettings.json
+### Local (docker-compose / development)
+- **Database**: `poc_sdd`
+- **Usuario**: `postgres`
+- **Password**: `postgres` (hardcoded para dev)
+- **Host**: `postgres` (service docker-compose) o `localhost` (`appsettings.Development.json`)
+
 ```json
+// src/api/appsettings.json (local docker-compose)
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=host.docker.internal;Port=5432;Database=poc_sdd;Username=postgres;Password=password"
+    "DefaultConnection": "Host=postgres;Port=5432;Database=poc_sdd;Username=postgres;Password=postgres"
+  }
+}
+// src/api/appsettings.Development.json (dotnet run local)
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=poc_sdd;Username=postgres;Password=postgres"
   }
 }
 ```
-> **Nota VPS**: PostgreSQL está en container externo (`docs/deployment.md:78`). Desarrollo local con `docker-compose.yml:14` usa `Host=postgres`, producción usa `host.docker.internal` con `--add-host=host.docker.internal:host-gateway` (`Dockerfile:39` expone 8080).
+
+### Producción (VPS Debian)
+- **Database**: `poc_sdd`
+- **Usuario**: `postgres`
+- **Password**: desde secreto `DB_PASSWORD` (GitHub Secrets)
+- **Host**: `host.docker.internal` con `--add-host=host.docker.internal:host-gateway` y red `nginx-net`
+
+```bash
+# En VPS (ci-cd.yml:108)
+-e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=poc_sdd;Username=postgres;Password=${{ secrets.DB_PASSWORD }}"
+```
+> **Nota**: `DB_NAME` y `DB_PASSWORD` en despliegue vienen de secretos, no hardcodeados. Desarrollo local usa `postgres`/`poc_sdd` fijos.
 
 ### DbContext Configuration
 ```csharp
