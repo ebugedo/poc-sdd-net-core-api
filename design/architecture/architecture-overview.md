@@ -84,6 +84,20 @@
 | **Specification Pattern** | Reglas de negocio reutilizables |
 | **Unit of Work Pattern** | Transacciones (EF Core lo implementa) |
 
+## Estándar de Nomenclatura
+
+**PascalCase (.NET / C#)**: Convención oficial del ecosistema .NET para proyectos y carpetas:
+
+```
+src/
+├── Api/
+├── Application/
+├── Domain/
+└── Infrastructure/
+```
+
+Históricamente en este repo las carpetas físicas son minúsculas (`src/api`, `src/domain`) por el fix de `NETSDK1004` en Linux case-sensitive, pero el estándar documentado es PascalCase.
+
 ## Estructura del Proyecto
 
 ```

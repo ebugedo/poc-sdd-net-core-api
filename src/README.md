@@ -9,6 +9,19 @@
 - **API Docs**: Swagger (Swashbuckle)
 - **Base de Datos**: PostgreSQL
 
+## Estándar PascalCase (.NET / C#)
+En el ecosistema de .NET es la convención oficial utilizar PascalCase tanto para nombres de proyectos como para las carpetas.
+
+```
+src/
+├── Api/
+├── Application/
+├── Domain/
+└── Infrastructure/
+```
+
+> **Nota**: El estándar es PascalCase. Históricamente en este repo las carpetas se crearon en minúsculas (`src/api`, `src/domain`, `src/infrastructure`) por compatibilidad Linux case-sensitive; el código y la solución ya usan referencias en minúsculas para evitar `NETSDK1004`.
+
 ## Estructura del Proyecto
 
 ```

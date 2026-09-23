@@ -32,9 +32,10 @@ Spec-Driven Development es una metodología donde las **especificaciones** guía
 ├── decisions/             # Architecture Decision Records (ADR)
 │
 ├── src/                   # Código fuente
-│   ├── api/               # Controllers, middleware
-│   ├── domain/            # Entidades, lógica de negocio
-│   └── infrastructure/    # Acceso a datos, servicios externos
+│   ├── Api/               # Controllers, middleware (Program + Startup)
+│   ├── Application/        # Lógica de aplicación
+│   ├── Domain/            # Entidades, lógica de negocio
+│   └── Infrastructure/    # Acceso a datos, servicios externos
 │
 └── tests/                 # Pruebas
     ├── unit/              # Pruebas unitarias
@@ -74,7 +75,7 @@ Ver [SDD-GUIDE.md](SDD-GUIDE.md) para una guía detallada de SDD.
 | Testing | xUnit + Bogus + FluentAssertions |
 | Container | Docker |
 | CI/CD | GitHub Actions + GHCR |
-| Server | VPS (Docker) |
+| Server | VPS Debian (Docker + Docker Compose + nginx + Portainer) |
 
 ## Despliegue
 
@@ -87,12 +88,12 @@ docker-compose up -d
 docker-compose logs -f api
 ```
 
-### Producción (Automático)
+### Producción (Automático - Debian VPS)
 El despliegue es automático al hacer push a `main`:
 1. GitHub Actions ejecuta tests
 2. Build de Docker image
 3. Push a GitHub Container Registry (ghcr.io)
-4. Deploy via SSH al VPS
+4. Deploy via SSH al VPS Debian: `docker pull ghcr.io/...` (no se construye en VPS, solo se extrae) en red `nginx-net` tras nginx + Portainer
 
 Ver [docs/deployment.md](docs/deployment.md) para guía completa.
 

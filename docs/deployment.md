@@ -51,17 +51,22 @@
    └── docker run新容器
 ```
 
-## Configuración Inicial del VPS
+## Entorno del Servidor
 
-### 1. Instalar Docker
+- **OS**: Debian (VPS)
+- **Proxy inverso**: nginx (Nginx Proxy Manager) en red `nginx-net`
+- **Gestión**: Portainer
+- **Runtime**: Docker + Docker Compose instalados, pero los contenedores **no se construyen en el VPS**, se extraen de `ghcr.io` (`docker pull`)
+
+## Configuración Inicial del VPS (Debian)
+
+### 1. Docker + Docker Compose (ya instalados)
 ```bash
-# Ubuntu/Debian
+# Debian - ya instalados en este VPS, referencia:
 curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
-
-# Habilitar Docker
-sudo systemctl enable docker
-sudo systemctl start docker
+sudo systemctl enable docker && sudo systemctl start docker
+docker compose version  # verificado
 ```
 
 ### 2. Configurar GitHub Secrets
