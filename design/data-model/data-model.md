@@ -9,14 +9,6 @@
 
 ```mermaid
 erDiagram
-    RESOURCE {
-        uuid id PK
-        varchar name
-        varchar description
-        timestamp created_at
-        timestamp updated_at
-    }
-    
     CLIENT {
         uuid id PK
         varchar name
@@ -27,36 +19,6 @@ erDiagram
 ```
 
 ## Configuración en EF Core
-
-### Resource Configuration
-```csharp
-public class ResourceConfiguration : IEntityTypeConfiguration<Resource>
-{
-    public void Configure(EntityTypeBuilder<Resource> builder)
-    {
-        builder.ToTable("resources");
-        
-        builder.HasKey(r => r.Id);
-        
-        builder.Property(r => r.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("gen_random_uuid()");
-        
-        builder.Property(r => r.Name)
-            .HasColumnName("name")
-            .HasMaxLength(255)
-            .IsRequired();
-        
-        builder.Property(r => r.CreatedAt)
-            .HasColumnName("created_at")
-            .HasDefaultValueSql("NOW()");
-        
-        builder.Property(r => r.UpdatedAt)
-            .HasColumnName("updated_at")
-            .HasDefaultValueSql("NOW()");
-    }
-}
-```
 
 ### Client Configuration
 ```csharp
@@ -96,15 +58,6 @@ public class ClientConfiguration : IEntityTypeConfiguration<Client>
 
 ## Tablas
 
-### resources
-| Columna | Tipo PostgreSQL | Constraints | Descripción |
-|---------|-----------------|-------------|-------------|
-| id | UUID | PK, DEFAULT gen_random_uuid() | Identificador único |
-| name | VARCHAR(255) | NOT NULL | Nombre del recurso |
-| description | TEXT | NULL | Descripción opcional |
-| created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
-| updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Última actualización |
-
 ### clients
 | Columna | Tipo PostgreSQL | Constraints | Descripción |
 |---------|-----------------|-------------|-------------|
@@ -115,8 +68,6 @@ public class ClientConfiguration : IEntityTypeConfiguration<Client>
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
 
 ## Índices
-- `pk_resources` PRIMARY KEY en `id`
-- `idx_resources_name` en `name`
 - `pk_clients` PRIMARY KEY en `id`
 - `idx_clients_email` UNIQUE en `email`
 - `idx_clients_name` en `name`

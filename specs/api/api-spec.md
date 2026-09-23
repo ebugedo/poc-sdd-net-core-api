@@ -2,7 +2,7 @@
 
 ## Información General
 - **Versión**: 1.0.0
-- **Base URL**: http://localhost:5000/api/v1
+- **Base URL**: http://localhost:8080/api/v1 (local Docker), https://pocsddnetcoreapi.timeforsoftware.com/api/v1 (prod nginx)
 - **Formato**: JSON
 
 ## Endpoints - Clientes
