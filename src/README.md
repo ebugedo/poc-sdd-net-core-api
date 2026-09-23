@@ -76,17 +76,19 @@ src/
 ### Domain Layer (Puro)
 ```csharp
 // ✅ CORRECTO: Domain puro sin dependencias
-public class Resource
+public class Client
 {
     public Guid Id { get; private set; }
-    public ResourceName Name { get; private set; }  // Value Object
+    public string Name { get; private set; }
+    public string Email { get; private set; }
+    public string? Phone { get; private set; }
     public DateTime CreatedAt { get; private set; }
     
     // Factory method
-    public static Resource Create(ResourceName name) { ... }
+    public static Client Create(string name, string email, string? phone = null) { ... }
     
     // Domain logic
-    public void Update(ResourceName newName) { ... }
+    public void Update(string name, string email, string? phone = null) { ... }
 }
 ```
 
@@ -98,22 +100,22 @@ using Microsoft.EntityFrameworkCore;  // NUNCA en Domain
 ### Application Layer
 ```csharp
 // Use Case Pattern
-public interface ICreateResourceUseCase
+public interface ICreateClientUseCase
 {
-    Task<ResourceResponse> ExecuteAsync(CreateResourceRequest request);
+    Task<ClientResponse> ExecuteAsync(CreateClientRequest request);
 }
 
-public class CreateResourceUseCase : ICreateResourceUseCase
+public class ClientService
 {
-    private readonly IResourceRepository _repository;
+    private readonly IClientRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
     
-    public async Task<ResourceResponse> ExecuteAsync(CreateResourceRequest request)
+    public async Task<ClientResponse> CreateAsync(CreateClientRequest request)
     {
-        var resource = Resource.Create(new ResourceName(request.Name));
-        await _repository.AddAsync(resource);
+        var client = Client.Create(request.Name, request.Email, request.Phone);
+        await _repository.AddAsync(client);
         await _unitOfWork.SaveChangesAsync();
-        return MapToResponse(resource);
+        return MapToResponse(client);
     }
 }
 ```
@@ -121,18 +123,19 @@ public class CreateResourceUseCase : ICreateResourceUseCase
 ### Infrastructure Layer
 ```csharp
 // Repository Pattern
-public class ResourceRepository : IResourceRepository
+public class ClientRepository : IClientRepository
 {
     private readonly ApplicationDbContext _context;
     
-    public async Task<Resource> GetByIdAsync(Guid id)
+    public async Task<Client?> GetByIdAsync(Guid id)
     {
-        return await _context.Resources.FindAsync(id);
+        return await _context.Clients.FindAsync(id);
     }
     
-    public async Task AddAsync(Resource resource)
+    public async Task<Client> AddAsync(Client client)
     {
-        await _context.Resources.AddAsync(resource);
+        await _context.Clients.AddAsync(client);
+        return client;
     }
 }
 ```

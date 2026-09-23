@@ -87,25 +87,23 @@ dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
 ## Ejemplo de Prueba Unitaria con Bogus y FluentAssertions
 
 ```csharp
-public class ResourceTests
+public class ClientTests
 {
-    private readonly Faker<Resource> _resourceFaker = new Faker<Resource>()
-        .RuleFor(r => r.Id, f => Guid.NewGuid())
-        .RuleFor(r => r.Name, f => f.Lorem.Word());
-
     [Fact]
-    public void Create_ShouldCreateResource_WhenNameIsValid()
+    public void Create_ShouldCreateClient_WhenValidData()
     {
         // Arrange
-        var name = new ResourceName("Test Resource");
+        var name = "John Doe";
+        var email = "john@example.com";
         
         // Act
-        var resource = Resource.Create(name);
+        var client = Client.Create(name, email);
         
         // Assert
-        resource.Should().NotBeNull();
-        resource.Name.Value.Should().Be("Test Resource");
-        resource.Id.Should().NotBeEmpty();
+        client.Should().NotBeNull();
+        client.Name.Should().Be(name);
+        client.Email.Should().Be(email);
+        client.Id.Should().NotBeEmpty();
     }
     
     [Theory]
@@ -114,20 +112,8 @@ public class ResourceTests
     public void Create_ShouldThrowException_WhenNameIsInvalid(string invalidName)
     {
         // Arrange & Act & Assert
-        var act = () => Resource.Create(new ResourceName(invalidName));
-        act.Should().Throw<DomainException>();
-    }
-    
-    [Fact]
-    public void Create_ShouldGenerateUniqueIds()
-    {
-        // Arrange & Act
-        var resources = Enumerable.Range(0, 10)
-            .Select(_ => Resource.Create(new ResourceName("Test")))
-            .ToList();
-        
-        // Assert
-        resources.Select(r => r.Id).Should().OnlyHaveUniqueItems();
+        var act = () => Client.Create(invalidName!, "john@example.com");
+        act.Should().Throw<ArgumentException>();
     }
 }
 ```
