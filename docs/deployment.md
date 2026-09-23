@@ -107,11 +107,13 @@ docker-compose logs -f api
 docker-compose down
 ```
 
-### Producción (VPS) - Red nginx-net
+### Producción (VPS) - Red nginx-net (puerto host no estándar)
 ```bash
 # Ver contenedores y red
 docker ps
 docker network inspect nginx-net
+# Verificar puerto 3010 no ocupado
+sudo ss -tulpn | grep 3010 || echo "3010 libre"
 
 # Ver logs
 docker logs -f poc-sdd-api
@@ -119,12 +121,14 @@ docker logs -f poc-sdd-api
 # Reiniciar
 docker restart poc-sdd-api
 
-# Actualizar manualmente (PostgreSQL externo, red nginx-net)
+# Actualizar manualmente (PostgreSQL externo, red nginx-net, puerto host 3010)
 docker pull ghcr.io/tu-usuario/poc-sdd-net-core-api:latest
 docker stop poc-sdd-api
 docker rm poc-sdd-api
 docker network create nginx-net || true
-docker run -d --name poc-sdd-api --restart unless-stopped --network nginx-net --add-host=host.docker.internal:host-gateway -p 8080:8080 -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=poc_sdd;Username=postgres;Password=xxx" ghcr.io/tu-usuario/poc-sdd-net-core-api:latest
+docker run -d --name poc-sdd-api --restart unless-stopped --network nginx-net --add-host=host.docker.internal:host-gateway -p 3010:8080 -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=poc_sdd;Username=postgres;Password=xxx" ghcr.io/tu-usuario/poc-sdd-net-core-api:latest
+# Acceso directo: http://VPS_IP:3010/api/v1/clients  (interno 8080)
+# Vía nginx: https://pocsddnetcoreapi.timeforsoftware.com/api/v1/clients -> proxy_pass http://poc-sdd-api:8080
 ```
 
 ### Nginx Reverse Proxy (nginx-net)
