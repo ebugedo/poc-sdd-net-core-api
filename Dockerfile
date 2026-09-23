@@ -9,6 +9,7 @@ COPY ["src/api/Api.csproj", "src/api/"]
 COPY ["src/Application/Application.csproj", "src/Application/"]
 COPY ["src/domain/Domain.csproj", "src/domain/"]
 COPY ["src/infrastructure/Infrastructure.csproj", "src/infrastructure/"]
+COPY ["tests/unit/UnitTests.csproj", "tests/unit/"]
 RUN dotnet restore "poc-sdd-net-core-api.sln"
 
 # Copy source code and build
