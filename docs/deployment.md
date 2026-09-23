@@ -80,7 +80,12 @@ En tu repo de GitHub → Settings → Secrets and variables → Actions:
 | `DB_PASSWORD` | Password de PostgreSQL |
 
 ### 3. PostgreSQL en VPS (ya desplegado)
-> **Nota**: PostgreSQL ya está corriendo en un container independiente en el VPS. No se despliega ni se gestiona desde este repo.
+> **Nota**: PostgreSQL ya está corriendo en un container independiente en el VPS (Debian). No se despliega ni se gestiona desde este repo.
+
+- **Database**: `poc_sdd`
+- **Usuario**: `postgres`
+- **Password**: secreto `DB_PASSWORD` (GitHub Secrets, inyectado vía `ConnectionStrings__DefaultConnection` en `ci-cd.yml:108`)
+- En producción no se usa `docker-compose`, solo `docker pull` de `ghcr.io` y `docker run` con `--network nginx-net`
 
 ```bash
 # Verificar que PostgreSQL está corriendo
@@ -92,6 +97,13 @@ docker logs postgres
 
 # La API se conecta vía host.docker.internal:5432 (ver --add-host en deploy)
 ```
+
+### 4. Migraciones (tablas)
+Las tablas se crean automáticamente en la primera ejecución vía `Startup.cs:54` `Database.Migrate()` (`src/infrastructure/Migrations/20260923102117_InitialCreate.cs` crea `clients`).
+- **Local**: `docker-compose up` usa `Host=postgres` con DB `poc_sdd` / password `postgres` (`src/api/appsettings.json`)
+- **Prod**: `Host=host.docker.internal` con DB `poc_sdd` / password `${{ secrets.DB_PASSWORD }}`
+
+No es necesario `dotnet ef database update` manual en VPS.
 
 ## Comandos Útiles
 

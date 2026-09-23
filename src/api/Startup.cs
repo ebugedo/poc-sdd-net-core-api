@@ -53,6 +53,13 @@ public class Startup
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
+        // Aplicar migraciones automáticamente al iniciar (crea tablas en primera ejecución)
+        using (var scope = app.ApplicationServices.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.Database.Migrate();
+        }
+
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
