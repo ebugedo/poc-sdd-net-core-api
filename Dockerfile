@@ -13,7 +13,7 @@ COPY ["tests/unit/UnitTests.csproj", "tests/unit/"]
 RUN dotnet restore "poc-sdd-net-core-api.sln"
 
 # Copy source code and build
-COPY src/ ./src/
+COPY src/ .
 COPY tests/ ./tests/
 WORKDIR "/src/Api"
 RUN dotnet build "Api.csproj" -c Release -o /app/build
