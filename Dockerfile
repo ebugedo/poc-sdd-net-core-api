@@ -5,16 +5,17 @@ WORKDIR /src
 # Copy solution and project files and restore dependencies
 COPY ["poc-sdd-net-core-api.sln", "./"]
 COPY ["poc-sdd-net-core-api.slnx", "./"]
-COPY ["src/api/Api.csproj", "src/api/"]
+COPY ["src/Api/Api.csproj", "src/Api/"]
 COPY ["src/Application/Application.csproj", "src/Application/"]
-COPY ["src/domain/Domain.csproj", "src/domain/"]
-COPY ["src/infrastructure/Infrastructure.csproj", "src/infrastructure/"]
+COPY ["src/Domain/Domain.csproj", "src/Domain/"]
+COPY ["src/Infrastructure/Infrastructure.csproj", "src/Infrastructure/"]
 COPY ["tests/unit/UnitTests.csproj", "tests/unit/"]
 RUN dotnet restore "poc-sdd-net-core-api.sln"
 
 # Copy source code and build
-COPY src/ .
-WORKDIR "/src/api"
+COPY src/ ./src/
+COPY tests/ ./tests/
+WORKDIR "/src/Api"
 RUN dotnet build "Api.csproj" -c Release -o /app/build
 
 # Publish stage
