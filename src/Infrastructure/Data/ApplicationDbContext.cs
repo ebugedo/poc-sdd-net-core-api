@@ -12,6 +12,7 @@ public class ApplicationDbContext : DbContext, IUnitOfWork
     }
 
     public DbSet<Client> Clients => Set<Client>();
+    public DbSet<Project> Projects => Set<Project>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

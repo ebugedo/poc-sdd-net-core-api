@@ -20,7 +20,7 @@ src/
 └── Infrastructure/
 ```
 
-> **Nota**: El estándar es PascalCase. Históricamente en este repo las carpetas se crearon en minúsculas (`src/api`, `src/domain`, `src/infrastructure`) por compatibilidad Linux case-sensitive; el código y la solución ya usan referencias en minúsculas para evitar `NETSDK1004`.
+> **Nota**: Las carpetas y todas las referencias usan PascalCase (`src/Api`, `src/Domain`, `src/Application`, `src/Infrastructure`), también en Linux case-sensitive (fix de `NETSDK1004`, PR #19).
 
 ## Estructura del Proyecto
 
@@ -45,33 +45,48 @@ src/
 │   │   └── Queries/             # Peticiones de solo lectura + handlers
 │   │       ├── GetAllClients/   # GetAllClientsQuery + Handler
 │   │       └── GetClientById/   # GetClientByIdQuery + Handler
+│   ├── Projects/                 # Feature de proyectos (misma estructura)
+│   │   ├── Commands/            # Peticiones de escritura + handlers
+│   │   │   ├── CreateProject/   # CreateProjectCommand + Handler (valida que el cliente exista)
+│   │   │   ├── UpdateProject/   # UpdateProjectCommand + Handler
+│   │   │   └── DeleteProject/   # DeleteProjectCommand + Handler
+│   │   └── Queries/             # Peticiones de solo lectura + handlers
+│   │       ├── GetAllProjects/  # GetAllProjectsQuery + Handler (filtro opcional por clientId)
+│   │       └── GetProjectById/  # GetProjectByIdQuery + Handler
 │   ├── Common/                  # Excepciones de aplicación
-│   │   └── ClientNotFoundException.cs
+│   │   ├── ClientNotFoundException.cs
+│   │   └── ProjectNotFoundException.cs
 │   ├── Interfaces/              # Puertos de entrada (IUseCase) - futuro
 │   ├── Mappings/                # Perfiles AutoMapper
-│   │   └── ClientMappingProfile.cs
+│   │   ├── ClientMappingProfile.cs
+│   │   └── ProjectMappingProfile.cs
 │   └── DTOs/                    # DTOs de aplicación
-│       └── ClientDTOs.cs        # ClientResponse, CreateClientRequest, UpdateClientRequest
+│       ├── ClientDTOs.cs        # ClientResponse, CreateClientRequest, UpdateClientRequest
+│       └── ProjectDTOs.cs       # ProjectResponse, CreateProjectRequest, UpdateProjectRequest
 │
 ├── Domain/                       # Dominio puro (SIN dependencias)
 │   ├── Entities/                # Entidades con identidad
-│   │   └── Client.cs            # Entidad actual (Resource ejemplo removido)
+│   │   ├── Client.cs            # Cliente (Name, Email, Phone, Logo opcional)
+│   │   └── Project.cs           # Proyecto (ClientId, Title, Description, Technologies, StartDate, DurationMonths)
 │   ├── ValueObjects/            # Value Objects (inmutables) - futuro Email, PhoneNumber
 │   ├── Aggregates/              # Agregados (raíz + entidades) - futuro
 │   ├── Events/                  # Domain Events - futuro
 │   ├── Services/                # Domain Services (lógica de negocio) - futuro
 │   ├── Specifications/          # Specifications (reglas reutilizables) - futuro
 │   └── Interfaces/              # Interfaces (puertos de salida)
-│       └── IClientRepository.cs # IClientRepository + IUnitOfWork
+│       ├── IClientRepository.cs # IClientRepository + IUnitOfWork
+│       └── IProjectRepository.cs # GetAllAsync(clientId?), GetByIdAsync, Add/Update/Delete
 │
 └── Infrastructure/               # Capa de infraestructura
     ├── Data/                    # Configuración EF Core
     │   ├── ApplicationDbContext.cs # Implements IUnitOfWork
     │   ├── Configurations/      # IEntityTypeConfiguration
-    │   │   └── ClientConfiguration.cs
+    │   │   ├── ClientConfiguration.cs
+    │   │   └── ProjectConfiguration.cs  # FK a clients, índice, CHECK duration
     │   └── Seeders/             # Datos iniciales
     ├── Repositories/            # Implementación de repositorios
-    │   └── ClientRepository.cs
+    │   ├── ClientRepository.cs
+    │   └── ProjectRepository.cs
     └── Migrations/              # Migraciones EF Core
         └── ... (archivos generados)
 ```
@@ -87,13 +102,31 @@ public class Client
     public string Name { get; private set; }
     public string Email { get; private set; }
     public string? Phone { get; private set; }
+    public string? Logo { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    
+
     // Factory method
-    public static Client Create(string name, string email, string? phone = null) { ... }
-    
-    // Domain logic
-    public void Update(string name, string email, string? phone = null) { ... }
+    public static Client Create(string name, string email, string? phone = null, string? logo = null) { ... }
+
+    // Domain logic (valida la URL del logo: absoluta http/https, max 2048)
+    public void Update(string name, string email, string? phone = null, string? logo = null) { ... }
+}
+
+public class Project
+{
+    public Guid Id { get; private set; }
+    public Guid ClientId { get; private set; }
+    public string Title { get; private set; }
+    public string Description { get; private set; }
+    public string Technologies { get; private set; }
+    public DateTime StartDate { get; private set; }
+    public int? DurationMonths { get; private set; }  // null = en curso; si existe, > 0
+    public DateTime CreatedAt { get; private set; }
+
+    public static Project Create(Guid clientId, string title, string description,
+        string technologies, DateTime startDate, int? durationMonths = null) { ... }
+
+    public void Update(...) { ... }
 }
 ```
 
@@ -111,7 +144,7 @@ public class CreateClientCommandHandler : IRequestHandler<CreateClientCommand, C
 {
     public async Task<ClientResponse> Handle(CreateClientCommand request, CancellationToken cancellationToken)
     {
-        var client = Client.Create(request.Name, request.Email, request.Phone);
+        var client = Client.Create(request.Name, request.Email, request.Phone, request.Logo);
         await _repository.AddAsync(client);
         await _unitOfWork.SaveChangesAsync();
         return _mapper.Map<ClientResponse>(client);

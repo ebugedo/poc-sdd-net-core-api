@@ -29,7 +29,7 @@ public class CreateClientCommandHandlerTests
     }
 
     private CreateClientCommand GenerateCommand() =>
-        new(_faker.Name.FullName(), _faker.Internet.Email(), _faker.Phone.PhoneNumber());
+        new(_faker.Name.FullName(), _faker.Internet.Email(), _faker.Phone.PhoneNumber(), _faker.Internet.Url());
 
     [Fact]
     public async Task Handle_ShouldCreateAndReturnClient()
@@ -46,9 +46,40 @@ public class CreateClientCommandHandlerTests
         result.Should().NotBeNull();
         result.Name.Should().Be(command.Name);
         result.Email.Should().Be(command.Email);
+        result.Logo.Should().Be(command.Logo);
         result.Id.Should().NotBeEmpty();
         _repositoryMock.Verify(r => r.AddAsync(It.Is<Client>(c => c.Name == command.Name)), Times.Once);
         _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCreateWithoutLogo_WhenLogoIsNull()
+    {
+        // Arrange
+        var command = GenerateCommand() with { Logo = null };
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Client>())).ReturnsAsync((Client c) => c);
+        _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Logo.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowArgumentException_WhenLogoIsNotAUrl()
+    {
+        // Arrange
+        var command = GenerateCommand() with { Logo = "no-es-una-url" };
+
+        // Act
+        var act = () => _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+        _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Client>()), Times.Never);
     }
 
     [Fact]

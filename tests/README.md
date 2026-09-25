@@ -49,26 +49,38 @@ tests/
 ├── unit/
 │   ├── Domain/
 │   │   └── Entities/
-│   │       └── ClientTests.cs              # xUnit + FluentAssertions
+│   │       ├── ClientTests.cs              # xUnit + FluentAssertions (incluye logo: URL válida, límites)
+│   │       └── ProjectTests.cs             # xUnit + FluentAssertions (BR-008..BR-011)
 │   └── Application/
-│       └── Clients/
+│       ├── Clients/
+│       │   ├── Commands/
+│       │   │   ├── CreateClientCommandHandlerTests.cs   # xUnit + Moq + Bogus + FluentAssertions
+│       │   │   ├── UpdateClientCommandHandlerTests.cs
+│       │   │   └── DeleteClientCommandHandlerTests.cs
+│       │   └── Queries/
+│       │       ├── GetAllClientsQueryHandlerTests.cs
+│       │       └── GetClientByIdQueryHandlerTests.cs
+│       └── Projects/
 │           ├── Commands/
-│           │   ├── CreateClientCommandHandlerTests.cs   # xUnit + Moq + Bogus + FluentAssertions
-│           │   ├── UpdateClientCommandHandlerTests.cs
-│           │   └── DeleteClientCommandHandlerTests.cs
+│           │   ├── CreateProjectCommandHandlerTests.cs  # incluye cliente inexistente -> 404
+│           │   ├── UpdateProjectCommandHandlerTests.cs
+│           │   └── DeleteProjectCommandHandlerTests.cs
 │           └── Queries/
-│               ├── GetAllClientsQueryHandlerTests.cs
-│               └── GetClientByIdQueryHandlerTests.cs
+│               ├── GetAllProjectsQueryHandlerTests.cs    # filtro por clientId
+│               └── GetProjectByIdQueryHandlerTests.cs
 │
 ├── integration/
 │   ├── Repositories/
-│   │   └── ClientRepositoryTests.cs        # futuro Testcontainers
+│   │   ├── ClientRepositoryTests.cs        # futuro Testcontainers
+│   │   └── ProjectRepositoryTests.cs       # futuro Testcontainers
 │   └── Api/
-│       └── ClientsControllerTests.cs       # futuro WebApplicationFactory
+│       ├── ClientsControllerTests.cs       # futuro WebApplicationFactory
+│       └── ProjectsControllerTests.cs      # futuro WebApplicationFactory
 │
 └── acceptance/
     └── Features/
-        └── ClientFeatureTests.cs           # futuro
+        ├── ClientFeatureTests.cs           # futuro
+        └── ProjectFeatureTests.cs          # futuro
 ```
 
 ## Ejecución

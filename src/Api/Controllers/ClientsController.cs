@@ -52,7 +52,7 @@ public class ClientsController : ControllerBase
     {
         try
         {
-            var command = new CreateClientCommand(request.Name, request.Email, request.Phone);
+            var command = new CreateClientCommand(request.Name, request.Email, request.Phone, request.Logo);
             var client = await _mediator.Send(command);
             return CreatedAtAction(nameof(GetById), new { id = client.Id }, client);
         }
@@ -70,7 +70,7 @@ public class ClientsController : ControllerBase
     {
         try
         {
-            var command = new UpdateClientCommand(id, request.Name, request.Email, request.Phone);
+            var command = new UpdateClientCommand(id, request.Name, request.Email, request.Phone, request.Logo);
             var client = await _mediator.Send(command);
             return client is null ? NotFound() : Ok(client);
         }

@@ -29,7 +29,7 @@ public class UpdateClientCommandHandlerTests
     }
 
     private UpdateClientCommand GenerateCommand() =>
-        new(_faker.Random.Guid(), _faker.Name.FullName(), _faker.Internet.Email(), _faker.Phone.PhoneNumber());
+        new(_faker.Random.Guid(), _faker.Name.FullName(), _faker.Internet.Email(), _faker.Phone.PhoneNumber(), _faker.Internet.Url());
 
     [Fact]
     public async Task Handle_ShouldUpdate_WhenExists()
@@ -47,8 +47,43 @@ public class UpdateClientCommandHandlerTests
         result.Should().NotBeNull();
         result!.Name.Should().Be(command.Name);
         result.Email.Should().Be(command.Email);
+        result.Logo.Should().Be(command.Logo);
         _repositoryMock.Verify(r => r.UpdateAsync(client), Times.Once);
         _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldClearLogo_WhenLogoIsNull()
+    {
+        // Arrange
+        var command = GenerateCommand() with { Logo = null };
+        var client = Client.Create("Old Name", "old@example.com", null, "https://cdn.example.com/old.png");
+        _repositoryMock.Setup(r => r.GetByIdAsync(client.Id)).ReturnsAsync(client);
+        _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        // Act
+        var result = await _sut.Handle(command with { Id = client.Id }, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Logo.Should().BeNull();
+        client.Logo.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowArgumentException_WhenLogoIsNotAUrl()
+    {
+        // Arrange
+        var command = GenerateCommand() with { Logo = "javascript:alert(1)" };
+        var client = Client.Create("Old Name", "old@example.com");
+        _repositoryMock.Setup(r => r.GetByIdAsync(client.Id)).ReturnsAsync(client);
+
+        // Act
+        var act = () => _sut.Handle(command with { Id = client.Id }, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+        _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
