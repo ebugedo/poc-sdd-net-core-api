@@ -6,6 +6,7 @@ public class ClientResponse
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? Phone { get; set; }
+    public string? Logo { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
@@ -14,6 +15,7 @@ public class CreateClientRequest
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? Phone { get; set; }
+    public string? Logo { get; set; }
 }
 
 public class UpdateClientRequest
@@ -21,4 +23,5 @@ public class UpdateClientRequest
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? Phone { get; set; }
+    public string? Logo { get; set; }
 }

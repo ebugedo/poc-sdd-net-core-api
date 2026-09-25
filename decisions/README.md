@@ -39,3 +39,4 @@ Este directorio contiene las decisiones de arquitectura documentadas. Cada ADR c
 - [ADR-001](ADR-001-stack-tecnologico.md) - Stack tecnológico
 - [ADR-002](ADR-002-despliegue-docker-ci-cd.md) - Despliegue con Docker y CI/CD
 - [ADR-003](ADR-003-cqrs-mediatr.md) - CQRS con MediatR
+- [ADR-004](ADR-004-client-logo-and-project-duration.md) - Logo de cliente como URL y duración de proyecto en meses

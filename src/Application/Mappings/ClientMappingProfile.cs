@@ -10,7 +10,7 @@ public class ClientMappingProfile : Profile
     {
         CreateMap<Client, ClientResponse>();
         CreateMap<CreateClientRequest, Client>()
-            .ConstructUsing(src => Client.Create(src.Name, src.Email, src.Phone));
+            .ConstructUsing(src => Client.Create(src.Name, src.Email, src.Phone, src.Logo));
         CreateMap<UpdateClientRequest, Client>()
             .ForAllMembers(opts => opts.Ignore());
     }

@@ -55,13 +55,14 @@
 - **Responsabilidad**: Orquestar operaciones, coordinar entre capas
 - **Tecnología**: .NET 8.0 + MediatR 12.5.0
 - **Componentes**:
-  - `Clients/Commands/<UseCase>/<UseCase>Command.cs` + `<UseCase>CommandHandler.cs` (escritura: crean/mueven/borran, usan `IUnitOfWork`)
-  - `Clients/Queries/<UseCase>/<UseCase>Query.cs` + `<UseCase>QueryHandler.cs` (lectura: solo mapean a DTO, nunca guardan)
-  - `Common/ClientNotFoundException.cs` (excepción de aplicación → 404 en el controller)
+  - `<Feature>/Commands/<UseCase>/<UseCase>Command.cs` + `<UseCase>CommandHandler.cs` (escritura: crean/mueven/borran, usan `IUnitOfWork`)
+  - `<Feature>/Queries/<UseCase>/<UseCase>Query.cs` + `<UseCase>QueryHandler.cs` (lectura: solo mapean a DTO, nunca guardan)
+  - Features activas: `Clients/` (5 casos de uso) y `Projects/` (5 casos de uso)
+  - `Common/ClientNotFoundException.cs`, `Common/ProjectNotFoundException.cs` (excepciones de aplicación → 404 en el controller)
   - `DTOs/`, `Mappings/` (AutoMapper)
 - **Contrato con la API**: los handlers implementan `IRequestHandler<TRequest, TResponse>`; el controller envía con `IMediator.Send(...)`
 - **Registro**: `services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(...))` (`Startup.cs:43`) → handlers transitorios resueltos por Autofac
-- **Mapping**: AutoMapper para Entity ↔ DTO (`ClientResponse`)
+- **Mapping**: AutoMapper para Entity ↔ DTO (`ClientResponse`, `ProjectResponse`)
 
 ### Domain Layer
 - **Responsabilidad**: Lógica de negocio, reglas, invariantes
@@ -108,7 +109,7 @@ src/
 └── Infrastructure/
 ```
 
-Históricamente en este repo las carpetas físicas son minúsculas (`src/api`, `src/domain`) por el fix de `NETSDK1004` en Linux case-sensitive, pero el estándar documentado es PascalCase.
+Desde el PR #19 las carpetas físicas y todas las referencias del repo usan PascalCase (`src/Api`, `src/Domain`, `src/Application`, `src/Infrastructure`), también en Linux case-sensitive.
 
 ## Estructura del Proyecto
 
@@ -126,6 +127,9 @@ src/
 │   ├── Clients/
 │   │   ├── Commands/             # CreateClient, UpdateClient, DeleteClient (+ handlers)
 │   │   └── Queries/              # GetAllClients, GetClientById (+ handlers)
+│   ├── Projects/
+│   │   ├── Commands/             # CreateProject, UpdateProject, DeleteProject (+ handlers)
+│   │   └── Queries/              # GetAllProjects, GetProjectById (+ handlers)
 │   ├── Common/                   # Excepciones de aplicación
 │   ├── Interfaces/              # Puertos de entrada/salida
 │   ├── Mappings/                # Perfiles AutoMapper

@@ -9,11 +9,23 @@
 
 ```mermaid
 erDiagram
+    CLIENT ||--o{ PROJECT : "tiene"
     CLIENT {
         uuid id PK
         varchar name
         varchar email
         varchar phone
+        varchar logo
+        timestamp created_at
+    }
+    PROJECT {
+        uuid id PK
+        uuid client_id FK
+        varchar title
+        text description
+        text technologies
+        timestamp start_date
+        int duration_months
         timestamp created_at
     }
 ```
@@ -49,9 +61,74 @@ public class ClientConfiguration : IEntityTypeConfiguration<Client>
             .HasMaxLength(50)
             .IsRequired(false);
         
+        builder.Property(c => c.Logo)
+            .HasColumnName("logo")
+            .HasMaxLength(2048)
+            .IsRequired(false);
+
         builder.Property(c => c.CreatedAt)
             .HasColumnName("created_at")
             .HasDefaultValueSql("NOW()");
+    }
+}
+```
+
+### Project Configuration
+```csharp
+public class ProjectConfiguration : IEntityTypeConfiguration<Project>
+{
+    public void Configure(EntityTypeBuilder<Project> builder)
+    {
+        builder.ToTable("projects");
+
+        builder.HasKey(p => p.Id);
+
+        builder.Property(p => p.Id)
+            .HasColumnName("id")
+            .HasDefaultValueSql("gen_random_uuid()");
+
+        builder.Property(p => p.ClientId)
+            .HasColumnName("client_id")
+            .IsRequired();
+
+        builder.Property(p => p.Title)
+            .HasColumnName("title")
+            .HasMaxLength(255)
+            .IsRequired();
+
+        builder.Property(p => p.Description)
+            .HasColumnName("description")
+            .HasColumnType("text")
+            .IsRequired();
+
+        builder.Property(p => p.Technologies)
+            .HasColumnName("technologies")
+            .HasColumnType("text")
+            .IsRequired();
+
+        builder.Property(p => p.StartDate)
+            .HasColumnName("start_date")
+            .IsRequired();
+
+        builder.Property(p => p.DurationMonths)
+            .HasColumnName("duration_months")
+            .IsRequired(false);
+
+        builder.Property(p => p.CreatedAt)
+            .HasColumnName("created_at")
+            .HasDefaultValueSql("NOW()");
+
+        builder.HasIndex(p => p.ClientId)
+            .HasDatabaseName("idx_projects_client_id");
+
+        builder.ToTable("projects", table =>
+            table.HasCheckConstraint("chk_projects_duration_months", "duration_months IS NULL OR duration_months > 0"));
+
+        builder.HasOne<Client>()
+            .WithMany()
+            .HasForeignKey(p => p.ClientId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_projects_client_id");
     }
 }
 ```
@@ -65,12 +142,29 @@ public class ClientConfiguration : IEntityTypeConfiguration<Client>
 | name | VARCHAR(255) | NOT NULL | Nombre del cliente |
 | email | VARCHAR(255) | NOT NULL, UNIQUE | Correo electrónico |
 | phone | VARCHAR(50) | NULL | Teléfono (opcional) |
+| logo | VARCHAR(2048) | NULL | URL del logo (opcional) |
+| created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
+
+### projects
+| Columna | Tipo PostgreSQL | Constraints | Descripción |
+|---------|-----------------|-------------|-------------|
+| id | UUID | PK, DEFAULT gen_random_uuid() | Identificador único |
+| client_id | UUID | NOT NULL, FK → clients(id) ON DELETE RESTRICT | Cliente propietario |
+| title | VARCHAR(255) | NOT NULL | Título del proyecto |
+| description | TEXT | NOT NULL | Descripción del proyecto |
+| technologies | TEXT | NOT NULL | Tecnologías (texto libre) |
+| start_date | TIMESTAMP | NOT NULL | Fecha de inicio |
+| duration_months | INT | NULL, CHECK `chk_projects_duration_months` (> 0) | Duración en meses (opcional) |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Fecha de creación |
 
 ## Índices
 - `pk_clients` PRIMARY KEY en `id`
 - `idx_clients_email` UNIQUE en `email`
 - `idx_clients_name` en `name`
+- `pk_projects` PRIMARY KEY en `id`
+- `idx_projects_client_id` en `projects(client_id)` (soporta el filtro `?clientId=`)
+- `chk_projects_duration_months` CHECK en `projects(duration_months)`: `NULL` o `> 0`
+- `fk_projects_client_id` FK en `projects(client_id)` → `clients(id)` `ON DELETE RESTRICT`
 
 ## Migraciones EF Core Code First
 
@@ -90,12 +184,14 @@ dotnet ef migrations script --project src/Infrastructure --startup-project src/A
 ```
 
 ### Convenciones de Migraciones
-- Nombre descriptivo: `InitialCreate`, `AddClientEntity`
+- Nombre descriptivo: `InitialCreate`, `AddClientEntity`, `AddProjectsAndClientLogo`
 - Revisar el script SQL antes de aplicar en producción
 - Siempre hacer backup antes de migrar en producción
 
 ### Aplicación Automática en Primera Ejecución
 Las migraciones se aplican automáticamente al iniciar la API vía `Startup.cs:54` `db.Database.Migrate()` (`src/Api/Startup.cs:54`). En la primera ejecución se crean las tablas (`clients`) sin intervención manual. Ver `src/Infrastructure/Migrations/20260923102117_InitialCreate.cs`.
+
+La migración `AddProjectsAndClientLogo` (`src/Infrastructure/Migrations/20260925185608_AddProjectsAndClientLogo.cs`) añade la columna `clients.logo` y la tabla `projects` con su FK, su índice y el CHECK de duración. Se aplica automáticamente junto con `InitialCreate` en el arranque de la API.
 
 ## Conexión a PostgreSQL
 

@@ -114,6 +114,121 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /projects:
+    get:
+      summary: Obtener todos los proyectos
+      operationId: getProjects
+      tags:
+        - Projects
+      parameters:
+        - name: clientId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filtra los proyectos de un cliente
+      responses:
+        '200':
+          description: Lista de proyectos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+    post:
+      summary: Crear un nuevo proyecto
+      operationId: createProject
+      tags:
+        - Projects
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+      responses:
+        '201':
+          description: Proyecto creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{id}:
+    get:
+      summary: Obtener proyecto por ID
+      operationId: getProjectById
+      tags:
+        - Projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Proyecto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Actualizar un proyecto
+      operationId: updateProject
+      tags:
+        - Projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+      responses:
+        '200':
+          description: Proyecto actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Eliminar un proyecto
+      operationId: deleteProject
+      tags:
+        - Projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Proyecto eliminado
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 components:
   schemas:
     Client:
@@ -129,6 +244,12 @@ components:
           format: email
         phone:
           type: string
+        logo:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 2048
+          description: URL del logo del cliente (opcional)
         createdAt:
           type: string
           format: date-time
@@ -149,6 +270,12 @@ components:
         phone:
           type: string
           maxLength: 50
+        logo:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 2048
+          description: URL del logo del cliente (opcional)
 
     UpdateClientRequest:
       type: object
@@ -166,6 +293,102 @@ components:
         phone:
           type: string
           maxLength: 50
+        logo:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 2048
+          description: URL del logo del cliente (opcional)
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        technologies:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        durationMonths:
+          type: integer
+          format: int32
+          nullable: true
+          minimum: 1
+          description: Duración en meses (opcional)
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateProjectRequest:
+      type: object
+      required:
+        - clientId
+        - title
+        - description
+        - technologies
+        - startDate
+      properties:
+        clientId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          minLength: 1
+        technologies:
+          type: string
+          minLength: 1
+        startDate:
+          type: string
+          format: date-time
+        durationMonths:
+          type: integer
+          format: int32
+          minimum: 1
+          description: Duración en meses (opcional)
+
+    UpdateProjectRequest:
+      type: object
+      required:
+        - clientId
+        - title
+        - description
+        - technologies
+        - startDate
+      properties:
+        clientId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          minLength: 1
+        technologies:
+          type: string
+          minLength: 1
+        startDate:
+          type: string
+          format: date-time
+        durationMonths:
+          type: integer
+          format: int32
+          minimum: 1
+          description: Duración en meses (opcional)
 
     ErrorResponse:
       type: object

@@ -31,6 +31,16 @@ public class ClientConfiguration : IEntityTypeConfiguration<Client>
             .HasMaxLength(50)
             .IsRequired(false);
 
+        builder.Property(c => c.Logo)
+            .HasColumnName("logo")
+            .HasMaxLength(2048)
+            .IsRequired(false);
+
+        builder.HasMany<Project>()
+            .WithOne()
+            .HasForeignKey(p => p.ClientId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Property(c => c.CreatedAt)
             .HasColumnName("created_at")
             .HasDefaultValueSql("NOW()");

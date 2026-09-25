@@ -27,7 +27,7 @@ public class UpdateClientCommandHandler : IRequestHandler<UpdateClientCommand, C
         if (client is null)
             return null;
 
-        client.Update(request.Name, request.Email, request.Phone);
+        client.Update(request.Name, request.Email, request.Phone, request.Logo);
 
         await _repository.UpdateAsync(client);
         await _unitOfWork.SaveChangesAsync();
