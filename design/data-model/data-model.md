@@ -95,42 +95,42 @@ dotnet ef migrations script --project src/Infrastructure --startup-project src/A
 - Siempre hacer backup antes de migrar en producción
 
 ### Aplicación Automática en Primera Ejecución
-Las migraciones se aplican automáticamente al iniciar la API vía `Startup.cs:54` `db.Database.Migrate()` (`src/api/Startup.cs:54`). En la primera ejecución se crean las tablas (`clients`) sin intervención manual. Ver `src/infrastructure/Migrations/20260923102117_InitialCreate.cs`.
+Las migraciones se aplican automáticamente al iniciar la API vía `Startup.cs:54` `db.Database.Migrate()` (`src/Api/Startup.cs:54`). En la primera ejecución se crean las tablas (`clients`) sin intervención manual. Ver `src/Infrastructure/Migrations/20260923102117_InitialCreate.cs`.
 
 ## Conexión a PostgreSQL
 
 ### Local (docker-compose / development)
-- **Database**: `poc_sdd`
-- **Usuario**: `postgres`
+- **Database**: `postgresql-db-ia-tests`
+- **Usuario**: `timeforsoftware@gmail.com`
 - **Password**: `postgres` (hardcoded para dev)
 - **Host**: `postgres` (service docker-compose) o `localhost` (`appsettings.Development.json`)
 
 ```json
-// src/api/appsettings.json (local docker-compose)
+// src/Api/appsettings.json (local docker-compose)
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=postgres;Port=5432;Database=poc_sdd;Username=postgres;Password=postgres"
+    "DefaultConnection": "Host=postgres;Port=5432;Database=postgresql-db-ia-tests;Username=timeforsoftware@gmail.com;Password=postgres"
   }
 }
-// src/api/appsettings.Development.json (dotnet run local)
+// src/Api/appsettings.Development.json (dotnet run local)
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=poc_sdd;Username=postgres;Password=postgres"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=postgresql-db-ia-tests;Username=timeforsoftware@gmail.com;Password=postgres"
   }
 }
 ```
 
 ### Producción (VPS Debian)
-- **Database**: `poc_sdd`
-- **Usuario**: `postgres`
+- **Database**: `postgresql-db-ia-tests`
+- **Usuario**: `timeforsoftware@gmail.com`
 - **Password**: desde secreto `DB_PASSWORD` (GitHub Secrets)
 - **Host**: `host.docker.internal` con `--add-host=host.docker.internal:host-gateway` y red `nginx-net`
 
 ```bash
-# En VPS (ci-cd.yml:108)
--e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=poc_sdd;Username=postgres;Password=${{ secrets.DB_PASSWORD }}"
+# En VPS (ci-cd.yml:110)
+-e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=postgresql-db-ia-tests;Username=timeforsoftware@gmail.com;Password=${{ secrets.DB_PASSWORD }}"
 ```
-> **Nota**: `DB_NAME` y `DB_PASSWORD` en despliegue vienen de secretos, no hardcodeados. Desarrollo local usa `postgres`/`poc_sdd` fijos.
+> **Nota**: la contraseña en despliegue viene del secreto `DB_PASSWORD`, no hardcodeada. El nombre de BD y el usuario son fijos; la BD `postgresql-db-ia-tests` y el rol `timeforsoftware@gmail.com` deben existir en el PostgreSQL del VPS.
 
 ### DbContext Configuration
 ```csharp

@@ -107,7 +107,7 @@ jobs:
               --network nginx-net \
               --add-host=host.docker.internal:host-gateway \
               -p 3010:8080 \
-              -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=poc_sdd;Username=postgres;Password=${{ secrets.DB_PASSWORD }}" \
+              -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=postgresql-db-ia-tests;Username=timeforsoftware@gmail.com;Password=${{ secrets.DB_PASSWORD }}" \
               -e ASPNETCORE_ENVIRONMENT=Production \
               ghcr.io/${{ github.repository }}:latest
             

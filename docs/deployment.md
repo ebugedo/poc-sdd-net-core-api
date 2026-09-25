@@ -82,9 +82,9 @@ En tu repo de GitHub → Settings → Secrets and variables → Actions:
 ### 3. PostgreSQL en VPS (ya desplegado)
 > **Nota**: PostgreSQL ya está corriendo en un container independiente en el VPS (Debian). No se despliega ni se gestiona desde este repo.
 
-- **Database**: `poc_sdd`
-- **Usuario**: `postgres`
-- **Password**: secreto `DB_PASSWORD` (GitHub Secrets, inyectado vía `ConnectionStrings__DefaultConnection` en `ci-cd.yml:108`)
+- **Database**: `postgresql-db-ia-tests`
+- **Usuario**: `timeforsoftware@gmail.com`
+- **Password**: secreto `DB_PASSWORD` (GitHub Secrets, inyectado vía `ConnectionStrings__DefaultConnection` en `ci-cd.yml:110`)
 - En producción no se usa `docker-compose`, solo `docker pull` de `ghcr.io` y `docker run` con `--network nginx-net`
 
 ```bash
@@ -98,10 +98,16 @@ docker logs postgres
 # La API se conecta vía host.docker.internal:5432 (ver --add-host en deploy)
 ```
 
+> **Requisito**: la base `postgresql-db-ia-tests` y el rol `timeforsoftware@gmail.com` deben existir en el PostgreSQL del VPS. Crear como superusuario:
+> ```bash
+> docker exec -it <postgres-container> psql -U postgres -c "CREATE ROLE \"timeforsoftware@gmail.com\" LOGIN PASSWORD '***';"
+> docker exec -it <postgres-container> psql -U postgres -c "CREATE DATABASE \"postgresql-db-ia-tests\" OWNER \"timeforsoftware@gmail.com\";"
+> ```
+
 ### 4. Migraciones (tablas)
-Las tablas se crean automáticamente en la primera ejecución vía `Startup.cs:54` `Database.Migrate()` (`src/infrastructure/Migrations/20260923102117_InitialCreate.cs` crea `clients`).
-- **Local**: `docker-compose up` usa `Host=postgres` con DB `poc_sdd` / password `postgres` (`src/api/appsettings.json`)
-- **Prod**: `Host=host.docker.internal` con DB `poc_sdd` / password `${{ secrets.DB_PASSWORD }}`
+Las tablas se crean automáticamente en la primera ejecución vía `Startup.cs:54` `Database.Migrate()` (`src/Infrastructure/Migrations/20260923102117_InitialCreate.cs` crea `clients`).
+- **Local**: `docker-compose up` usa `Host=postgres` con DB `postgresql-db-ia-tests` / password `postgres` (`src/Api/appsettings.json`)
+- **Prod**: `Host=host.docker.internal` con DB `postgresql-db-ia-tests` / password `${{ secrets.DB_PASSWORD }}`
 
 No es necesario `dotnet ef database update` manual en VPS.
 
@@ -138,7 +144,7 @@ docker pull ghcr.io/tu-usuario/poc-sdd-net-core-api:latest
 docker stop poc-sdd-api
 docker rm poc-sdd-api
 docker network create nginx-net || true
-docker run -d --name poc-sdd-api --restart unless-stopped --network nginx-net --add-host=host.docker.internal:host-gateway -p 3010:8080 -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=poc_sdd;Username=postgres;Password=xxx" ghcr.io/tu-usuario/poc-sdd-net-core-api:latest
+docker run -d --name poc-sdd-api --restart unless-stopped --network nginx-net --add-host=host.docker.internal:host-gateway -p 3010:8080 -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=postgresql-db-ia-tests;Username=timeforsoftware@gmail.com;Password=xxx" ghcr.io/tu-usuario/poc-sdd-net-core-api:latest
 # Acceso directo: http://VPS_IP:3010/api/v1/clients  (interno 8080)
 # Vía nginx: https://pocsddnetcoreapi.timeforsoftware.com/api/v1/clients -> proxy_pass http://poc-sdd-api:8080
 ```
@@ -166,7 +172,7 @@ server {
 ### Producción (PostgreSQL externo)
 ```bash
 ASPNETCORE_ENVIRONMENT=Production
-ConnectionStrings__DefaultConnection=Host=host.docker.internal;Port=5432;Database=poc_sdd;Username=postgres;Password=xxx
+ConnectionStrings__DefaultConnection=Host=host.docker.internal;Port=5432;Database=postgresql-db-ia-tests;Username=timeforsoftware@gmail.com;Password=xxx
 # Requiere --add-host=host.docker.internal:host-gateway en docker run
 ```
 
@@ -200,7 +206,7 @@ docker ps | grep postgres
 # Probar conexión desde la API hacia host.docker.internal
 docker exec -it poc-sdd-api bash
 apt-get update && apt-get install -y postgresql-client
-psql "host=host.docker.internal port=5432 dbname=poc_sdd user=postgres" -c "SELECT 1"
+psql "host=host.docker.internal port=5432 dbname=postgresql-db-ia-tests user=timeforsoftware@gmail.com" -c "SELECT 1"
 
 # Verificar que el mapping existe
 docker inspect poc-sdd-api | grep host.docker.internal
