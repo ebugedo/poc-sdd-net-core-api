@@ -33,20 +33,25 @@ src/
 │   ├── Middleware/               # Middleware (error handling, auth)
 │   ├── Extensions/              # Extension methods
 │   ├── Program.cs               # Entry point (HostBuilder + Autofac, delega a Startup)
-│   ├── Startup.cs               # Registro servicios (EF Core, AutoMapper, Swagger, HealthChecks) y pipeline
+│   ├── Startup.cs               # Registro servicios (EF Core, AutoMapper, MediatR, Swagger, HealthChecks) y pipeline
 │   └── appsettings.json         # Configuración
 │
-├── Application/                  # Capa de aplicación
-│   ├── Interfaces/              # Puertos de entrada (IUseCase)
-│   │   ├── ICreateResourceUseCase.cs
-│   │   ├── IGetResourceUseCase.cs
-│   │   └── IDeleteResourceUseCase.cs
-│   ├── Services/                # Implementación de use cases
-│   │   └── ResourceService.cs
+├── Application/                  # Capa de aplicación (CQRS con MediatR)
+│   ├── Clients/
+│   │   ├── Commands/            # Peticiones de escritura + handlers
+│   │   │   ├── CreateClient/    # CreateClientCommand + Handler
+│   │   │   ├── UpdateClient/    # UpdateClientCommand + Handler
+│   │   │   └── DeleteClient/    # DeleteClientCommand + Handler
+│   │   └── Queries/             # Peticiones de solo lectura + handlers
+│   │       ├── GetAllClients/   # GetAllClientsQuery + Handler
+│   │       └── GetClientById/   # GetClientByIdQuery + Handler
+│   ├── Common/                  # Excepciones de aplicación
+│   │   └── ClientNotFoundException.cs
+│   ├── Interfaces/              # Puertos de entrada (IUseCase) - futuro
+│   ├── Mappings/                # Perfiles AutoMapper
+│   │   └── ClientMappingProfile.cs
 │   └── DTOs/                    # DTOs de aplicación
-│       ├── CreateResourceRequest.cs
-│       ├── ResourceResponse.cs
-│       └── ErrorResponse.cs
+│       └── ClientDTOs.cs        # ClientResponse, CreateClientRequest, UpdateClientRequest
 │
 ├── Domain/                       # Dominio puro (SIN dependencias)
 │   ├── Entities/                # Entidades con identidad
@@ -99,25 +104,25 @@ using Microsoft.EntityFrameworkCore;  // NUNCA en Domain
 
 ### Application Layer
 ```csharp
-// Use Case Pattern
-public interface ICreateClientUseCase
-{
-    Task<ClientResponse> ExecuteAsync(CreateClientRequest request);
-}
+// CQRS: un command (escritura) + su handler
+public record CreateClientCommand(string Name, string Email, string? Phone) : IRequest<ClientResponse>;
 
-public class ClientService
+public class CreateClientCommandHandler : IRequestHandler<CreateClientCommand, ClientResponse>
 {
-    private readonly IClientRepository _repository;
-    private readonly IUnitOfWork _unitOfWork;
-    
-    public async Task<ClientResponse> CreateAsync(CreateClientRequest request)
+    public async Task<ClientResponse> Handle(CreateClientCommand request, CancellationToken cancellationToken)
     {
         var client = Client.Create(request.Name, request.Email, request.Phone);
         await _repository.AddAsync(client);
         await _unitOfWork.SaveChangesAsync();
-        return MapToResponse(client);
+        return _mapper.Map<ClientResponse>(client);
     }
 }
+```
+
+El controller no conoce el handler: solo envía el request al mediator.
+
+```csharp
+var client = await _mediator.Send(new CreateClientCommand(request.Name, request.Email, request.Phone));
 ```
 
 ### Infrastructure Layer

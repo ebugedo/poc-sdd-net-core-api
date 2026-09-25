@@ -36,3 +36,6 @@ Este directorio contiene las decisiones de arquitectura documentadas. Cada ADR c
 
 ## Lista de ADRs
 - [ADR-001](ADR-001-template.md) - Template para nuevos ADRs
+- [ADR-001](ADR-001-stack-tecnologico.md) - Stack tecnológico
+- [ADR-002](ADR-002-despliegue-docker-ci-cd.md) - Despliegue con Docker y CI/CD
+- [ADR-003](ADR-003-cqrs-mediatr.md) - CQRS con MediatR

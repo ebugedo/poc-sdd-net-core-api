@@ -33,7 +33,7 @@ Spec-Driven Development es una metodología donde las **especificaciones** guía
 │
 ├── src/                   # Código fuente
 │   ├── Api/               # Controllers, middleware (Program + Startup)
-│   ├── Application/        # Lógica de aplicación
+│   ├── Application/        # Commands, Queries y handlers (CQRS)
 │   ├── Domain/            # Entidades, lógica de negocio
 │   └── Infrastructure/    # Acceso a datos, servicios externos
 │
@@ -67,7 +67,8 @@ Ver [SDD-GUIDE.md](SDD-GUIDE.md) para una guía detallada de SDD.
 |------------|------------|
 | Framework | ASP.NET Core 8.0 |
 | API Docs | Swagger (Swashbuckle) |
-| Patrón | DDD + Clean Architecture |
+| Patrón | DDD + Clean Architecture + CQRS |
+| CQRS | MediatR 12.5.0 |
 | DI Container | Autofac |
 | ORM | Entity Framework Core 8.0 |
 | Mapping | AutoMapper |
