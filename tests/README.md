@@ -12,7 +12,7 @@
 ### `/unit`
 Pruebas unitarias que verifican el comportamiento aislado de componentes.
 - **Domain**: Entidades, Value Objects, Specifications
-- **Application**: Use Cases, Services
+- **Application**: Command handlers y Query handlers (CQRS)
 - **NO Infrastructure**: Se mockea
 
 ### `/integration`
@@ -37,7 +37,7 @@ Pruebas de aceptación que verifican los requisitos del negocio.
 ### Qué testear
 ```
 ✅ Domain: Entidades, Value Objects, Specifications, Domain Services
-✅ Application: Use Cases, Validación de DTOs
+✅ Application: Command handlers, Query handlers, validación de DTOs
 ✅ Infrastructure: Repositories (con integración)
 ❌ API Controllers: Solo integración
 ```
@@ -51,8 +51,14 @@ tests/
 │   │   └── Entities/
 │   │       └── ClientTests.cs              # xUnit + FluentAssertions
 │   └── Application/
-│       └── Services/
-│           └── ClientServiceTests.cs       # xUnit + Moq + Bogus + FluentAssertions
+│       └── Clients/
+│           ├── Commands/
+│           │   ├── CreateClientCommandHandlerTests.cs   # xUnit + Moq + Bogus + FluentAssertions
+│           │   ├── UpdateClientCommandHandlerTests.cs
+│           │   └── DeleteClientCommandHandlerTests.cs
+│           └── Queries/
+│               ├── GetAllClientsQueryHandlerTests.cs
+│               └── GetClientByIdQueryHandlerTests.cs
 │
 ├── integration/
 │   ├── Repositories/
@@ -120,40 +126,50 @@ public class ClientTests
 
 ## Ejemplo de Prueba con Mock y Bogus (Moq)
 
+Los handlers se testean directamente (sin mediator): se mockean `IClientRepository` e `IUnitOfWork`, y el mapper real se construye con `MapperConfiguration`.
+
 ```csharp
-public class ClientServiceTests
+public class CreateClientCommandHandlerTests
 {
     private readonly Mock<IClientRepository> _repositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-    private readonly ClientService _sut;
-    private readonly Faker<CreateClientRequest> _requestFaker;
-    
-    public ClientServiceTests()
+    private readonly IMapper _mapper;
+    private readonly CreateClientCommandHandler _sut;
+    private readonly Faker _faker;
+
+    public CreateClientCommandHandlerTests()
     {
         _repositoryMock = new Mock<IClientRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
-        _sut = new ClientService(_repositoryMock.Object, _unitOfWorkMock.Object);
-        _requestFaker = new Faker<CreateClientRequest>()
-            .RuleFor(r => r.Name, f => f.Name.FullName())
-            .RuleFor(r => r.Email, f => f.Internet.Email());
+        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<ClientMappingProfile>()).CreateMapper();
+        _sut = new CreateClientCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _mapper);
+        _faker = new Faker();
     }
-    
+
+    private CreateClientCommand GenerateCommand() =>
+        new(_faker.Name.FullName(), _faker.Internet.Email(), _faker.Phone.PhoneNumber());
+
     [Fact]
-    public async Task CreateAsync_ShouldCreateAndReturnClient()
+    public async Task Handle_ShouldCreateAndReturnClient()
     {
         // Arrange
-        var request = _requestFaker.Generate();
+        var command = GenerateCommand();
         _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Client>())).ReturnsAsync((Client c) => c);
         _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
-        var result = await _sut.CreateAsync(request);
-        
+        var result = await _sut.Handle(command, CancellationToken.None);
+
         // Assert
         result.Should().NotBeNull();
-        result.Name.Should().Be(request.Name);
-        _repositoryMock.Verify(r => r.AddAsync(It.Is<Client>(c => c.Name == request.Name)), Times.Once);
+        result.Name.Should().Be(command.Name);
+        _repositoryMock.Verify(r => r.AddAsync(It.Is<Client>(c => c.Name == command.Name)), Times.Once);
         _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
 ```
+
+> **Nota**: los commands/queries son `record` posicionales, sin constructor sin parámetros. Bogus no puede instanciarlos: usa `new Faker()` y un factory (`GenerateCommand()`) en lugar de `Faker<TCommand>`.
+
+Estado actual: **21 pruebas** en verde (`dotnet test`).
+

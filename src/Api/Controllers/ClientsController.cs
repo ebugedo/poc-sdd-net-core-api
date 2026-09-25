@@ -1,6 +1,12 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using poc_sdd_net_core_api.Application.Clients.Commands.CreateClient;
+using poc_sdd_net_core_api.Application.Clients.Commands.DeleteClient;
+using poc_sdd_net_core_api.Application.Clients.Commands.UpdateClient;
+using poc_sdd_net_core_api.Application.Clients.Queries.GetAllClients;
+using poc_sdd_net_core_api.Application.Clients.Queries.GetClientById;
+using poc_sdd_net_core_api.Application.Common;
 using poc_sdd_net_core_api.Application.DTOs;
-using poc_sdd_net_core_api.Application.Services;
 
 namespace poc_sdd_net_core_api.Api.Controllers;
 
@@ -8,18 +14,18 @@ namespace poc_sdd_net_core_api.Api.Controllers;
 [Route("api/v1/[controller]")]
 public class ClientsController : ControllerBase
 {
-    private readonly ClientService _clientService;
+    private readonly IMediator _mediator;
 
-    public ClientsController(ClientService clientService)
+    public ClientsController(IMediator mediator)
     {
-        _clientService = clientService;
+        _mediator = mediator;
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<ClientResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
-        var clients = await _clientService.GetAllAsync();
+        var clients = await _mediator.Send(new GetAllClientsQuery());
         return Ok(clients);
     }
 
@@ -28,11 +34,15 @@ public class ClientsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var client = await _clientService.GetByIdAsync(id);
-        if (client is null)
+        try
+        {
+            var client = await _mediator.Send(new GetClientByIdQuery(id));
+            return Ok(client);
+        }
+        catch (ClientNotFoundException)
+        {
             return NotFound();
-
-        return Ok(client);
+        }
     }
 
     [HttpPost]
@@ -42,7 +52,8 @@ public class ClientsController : ControllerBase
     {
         try
         {
-            var client = await _clientService.CreateAsync(request);
+            var command = new CreateClientCommand(request.Name, request.Email, request.Phone);
+            var client = await _mediator.Send(command);
             return CreatedAtAction(nameof(GetById), new { id = client.Id }, client);
         }
         catch (ArgumentException ex)
@@ -59,11 +70,9 @@ public class ClientsController : ControllerBase
     {
         try
         {
-            var client = await _clientService.UpdateAsync(id, request);
-            if (client is null)
-                return NotFound();
-
-            return Ok(client);
+            var command = new UpdateClientCommand(id, request.Name, request.Email, request.Phone);
+            var client = await _mediator.Send(command);
+            return client is null ? NotFound() : Ok(client);
         }
         catch (ArgumentException ex)
         {
@@ -76,10 +85,14 @@ public class ClientsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await _clientService.DeleteAsync(id);
-        if (!deleted)
+        try
+        {
+            await _mediator.Send(new DeleteClientCommand(id));
+            return NoContent();
+        }
+        catch (ClientNotFoundException)
+        {
             return NotFound();
-
-        return NoContent();
+        }
     }
 }

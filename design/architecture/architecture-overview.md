@@ -10,7 +10,7 @@
 │         Controllers │ DTOs │ Middleware │ Filters        │
 ├─────────────────────────────────────────────────────────┤
 │                    Application Layer                     │
-│        Use Cases │ Services │ Interfaces (Ports)         │
+│   Commands │ Queries │ Handlers │ Mediator │ DTOs        │
 ├─────────────────────────────────────────────────────────┤
 │                      Domain Layer                        │
 │   Entities │ Value Objects │ Aggregates │ Domain Events  │
@@ -23,6 +23,8 @@
 └─────────────────────────────────────────────────────────┘
 ```
 
+> Requests HTTP (comandos) y respuestas (queries) se despachan vía **MediatR**: el controller no conoce el caso de uso, solo envía `IRequest` y MediatR resuelve el `IRequestHandler` registrado por Autofac. Ver `/decisions/ADR-003-cqrs-mediatr.md`.
+
 ## Stack Tecnológico
 
 | Capa | Tecnología | Propósito |
@@ -30,6 +32,7 @@
 | **API** | ASP.NET Core 8.0 | Framework web, routing, serialización |
 | **API Docs** | Swagger / Swashbuckle | Documentación OpenAPI de la API |
 | **DDD** | .NET 8.0 | Domain-Driven Design, patrones de dominio |
+| **CQRS** | MediatR 12.5.0 | Despacho de Commands/Queries, desacopla controller y handlers |
 | **DI Container** | Autofac | Dependency Injection avanzado, módulos |
 | **ORM** | Entity Framework Core 8.0 | Mapeo objeto-relacional, migraciones |
 | **Mapping** | AutoMapper | Mapeo de objetos (Entity ↔ DTO) |
@@ -43,15 +46,22 @@
 - **Tecnología**: ASP.NET Core 8.0 (patrón clásico Program + Startup)
 - **Componentes**: Controllers, DTOs, Middleware, Filters, Program.cs, Startup.cs
   - `Program.cs`: HostBuilder, `UseServiceProviderFactory(AutofacServiceProviderFactory)`, `UseStartup<Startup>()`
-  - `Startup.cs`: `ConfigureContainer` (Autofac), `ConfigureServices` (EF Core, AutoMapper, Swagger), `Configure` (Swagger, Routing)
+  - `Startup.cs`: `ConfigureContainer` (Autofac), `ConfigureServices` (EF Core, AutoMapper, MediatR, Swagger), `Configure` (Swagger, Routing, `Database.Migrate()`)
+- **Controllers**: delgados, solo traducen HTTP ↔ `IRequest`; la lógica está en los handlers de Application
 - **API Docs**: Swagger (Swashbuckle) para documentación OpenAPI
 - **DI Container**: Autofac para dependency injection
 
-### Application Layer
+### Application Layer (CQRS)
 - **Responsabilidad**: Orquestar operaciones, coordinar entre capas
-- **Tecnología**: .NET 8.0
-- **Componentes**: Use Cases, Application Services, Interfaces (Ports), DTOs
-- **Mapping**: AutoMapper para Entity ↔ DTO
+- **Tecnología**: .NET 8.0 + MediatR 12.5.0
+- **Componentes**:
+  - `Clients/Commands/<UseCase>/<UseCase>Command.cs` + `<UseCase>CommandHandler.cs` (escritura: crean/mueven/borran, usan `IUnitOfWork`)
+  - `Clients/Queries/<UseCase>/<UseCase>Query.cs` + `<UseCase>QueryHandler.cs` (lectura: solo mapean a DTO, nunca guardan)
+  - `Common/ClientNotFoundException.cs` (excepción de aplicación → 404 en el controller)
+  - `DTOs/`, `Mappings/` (AutoMapper)
+- **Contrato con la API**: los handlers implementan `IRequestHandler<TRequest, TResponse>`; el controller envía con `IMediator.Send(...)`
+- **Registro**: `services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(...))` (`Startup.cs:43`) → handlers transitorios resueltos por Autofac
+- **Mapping**: AutoMapper para Entity ↔ DTO (`ClientResponse`)
 
 ### Domain Layer
 - **Responsabilidad**: Lógica de negocio, reglas, invariantes
@@ -77,6 +87,8 @@
 
 | Patrone | Uso |
 |---------|-----|
+| **CQRS** | Separar Commands (escritura) y Queries (lectura) con MediatR |
+| **Mediator** | Desacoplar controller de los handlers de Application |
 | **Repository Pattern** | Acceso a datos abstracto |
 | **Aggregate Pattern** | Consistencia transaccional |
 | **Value Object Pattern** | Inmutabilidad |
@@ -110,9 +122,13 @@ src/
 │   ├── Program.cs               # HostBuilder + Autofac factory
 │   └── Startup.cs               # ConfigureServices / ConfigureContainer / Configure
 │
-├── Application/                  # Capa de aplicación
+├── Application/                  # Capa de aplicación (CQRS)
+│   ├── Clients/
+│   │   ├── Commands/             # CreateClient, UpdateClient, DeleteClient (+ handlers)
+│   │   └── Queries/              # GetAllClients, GetClientById (+ handlers)
+│   ├── Common/                   # Excepciones de aplicación
 │   ├── Interfaces/              # Puertos de entrada/salida
-│   ├── Services/                # Application services
+│   ├── Mappings/                # Perfiles AutoMapper
 │   └── DTOs/                    # DTOs de aplicación
 │
 ├── Domain/                       # Dominio puro (sin dependencias)

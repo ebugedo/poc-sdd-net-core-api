@@ -1,7 +1,7 @@
 using Autofac;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using poc_sdd_net_core_api.Application.Services;
+using poc_sdd_net_core_api.Application.Mappings;
 using poc_sdd_net_core_api.Domain.Interfaces;
 using poc_sdd_net_core_api.Infrastructure.Data;
 using poc_sdd_net_core_api.Infrastructure.Repositories;
@@ -21,7 +21,6 @@ public class Startup
     {
         // Autofac registrations
         builder.RegisterType<ClientRepository>().As<IClientRepository>().InstancePerLifetimeScope();
-        builder.RegisterType<ClientService>().InstancePerLifetimeScope();
         // IUnitOfWork -> ApplicationDbContext (already registered as DbContext)
         builder.Register(c => c.Resolve<ApplicationDbContext>()).As<IUnitOfWork>().InstancePerLifetimeScope();
     }
@@ -37,7 +36,10 @@ public class Startup
                 b => b.MigrationsAssembly("Infrastructure")));
 
         // AutoMapper - scans ClientMappingProfile
-        services.AddAutoMapper(typeof(Application.Mappings.ClientMappingProfile).Assembly);
+        services.AddAutoMapper(typeof(ClientMappingProfile).Assembly);
+
+        // CQRS - MediatR (commands + queries, handlers auto-descubiertos)
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ClientMappingProfile).Assembly));
 
         // Swagger - siempre habilitado para POC (útil tras nginx)
         services.AddSwaggerGen(c =>
