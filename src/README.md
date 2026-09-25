@@ -153,9 +153,9 @@ public class ClientRepository : IClientRepository
 ## Base de Datos y Migraciones
 
 - **Motor**: PostgreSQL 16
-- **Local**: DB `poc_sdd`, user `postgres`, password `postgres` (`src/api/appsettings.json` / `docker-compose.yml:30`)
-- **Prod**: DB `poc_sdd`, password desde secreto `DB_PASSWORD` (`ci-cd.yml:108` `host.docker.internal`)
-- **Migraciones**: EF Core Code First en `src/infrastructure/Migrations/` (`20260923102117_InitialCreate.cs`)
+- **Local**: DB `postgresql-db-ia-tests`, user `timeforsoftware@gmail.com`, password `postgres` (`src/Api/appsettings.json` / `docker-compose.yml:30`)
+- **Prod**: DB `postgresql-db-ia-tests`, user `timeforsoftware@gmail.com`, password desde secreto `DB_PASSWORD` (`ci-cd.yml:110` `host.docker.internal`)
+- **Migraciones**: EF Core Code First en `src/Infrastructure/Migrations/` (`20260923102117_InitialCreate.cs`)
 - **Auto-creación**: `Startup.cs:54` `db.Database.Migrate()` crea tablas en primera ejecución, no requiere `dotnet ef database update` manual
 
 ## Comandos Útiles
