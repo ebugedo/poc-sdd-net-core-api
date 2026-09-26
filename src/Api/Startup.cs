@@ -22,6 +22,7 @@ public class Startup
         // Autofac registrations
         builder.RegisterType<ClientRepository>().As<IClientRepository>().InstancePerLifetimeScope();
         builder.RegisterType<ProjectRepository>().As<IProjectRepository>().InstancePerLifetimeScope();
+        builder.RegisterType<SectorRepository>().As<ISectorRepository>().InstancePerLifetimeScope();
         // IUnitOfWork -> ApplicationDbContext (already registered as DbContext)
         builder.Register(c => c.Resolve<ApplicationDbContext>()).As<IUnitOfWork>().InstancePerLifetimeScope();
     }

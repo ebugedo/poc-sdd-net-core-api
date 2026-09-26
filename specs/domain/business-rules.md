@@ -62,6 +62,24 @@
 - **Mensaje de error**: `Cannot delete a client with projects` (409 futuro)
 - **Se aplica a**: FK `projects.client_id` con `ON DELETE RESTRICT`
 
+### BR-014: Sector de Proyecto Obligatorio
+- **Descripción**: Todo proyecto debe pertenecer a un sector del catálogo
+- **Condición**: `sectorId == Guid.Empty` => error
+- **Mensaje de error**: `SectorId is required`
+- **Se aplica a**: `Project.Create(sectorId)`, `Project.Update(sectorId)` - `src/Domain/Entities/Project.cs`
+
+### BR-015: Sector Debe Existir
+- **Descripción**: El `sectorId` debe corresponder a un sector sembrado
+- **Condición**: sector inexistente => error
+- **Mensaje de error**: `Sector not found` (404 en API)
+- **Se aplica a**: `CreateProjectCommandHandler`, `UpdateProjectCommandHandler`
+
+### BR-016: Catálogo de Sectores Fijo
+- **Descripción**: El catálogo de sectores es de solo lectura con 7 valores: Administración pública, Ingeniería, Publicidad, Servicios financieros, Servicios tecnológicos, Transporte y Sector inmobiliario
+- **Condición**: no existen endpoints de escritura; los datos se siembran con la migración `AddSectorsAndProjectSector`
+- **Mensaje de error**: N/A
+- **Se aplica a**: `SectorConfiguration` (`HasData`), `SectorsController` (solo GET)
+
 ## Reglas de Negocio
 
 ### BR-004: Generación de Id
@@ -89,5 +107,7 @@
 - `Project.Id != Guid.Empty` siempre
 - `Project.Title`, `Project.Description` y `Project.Technologies` nunca son null/vacío
 - `Project.ClientId != Guid.Empty` siempre
+- `Project.SectorId != Guid.Empty` siempre y apunta a un sector existente
+- El catálogo de sectores tiene exactamente 7 entradas con nombre único
 - `Project.DurationMonths` es null o > 0
 - `Project.CreatedAt` es UTC y se establece solo una vez

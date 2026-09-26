@@ -47,27 +47,33 @@ src/
 │   │       └── GetClientById/   # GetClientByIdQuery + Handler
 │   ├── Projects/                 # Feature de proyectos (misma estructura)
 │   │   ├── Commands/            # Peticiones de escritura + handlers
-│   │   │   ├── CreateProject/   # CreateProjectCommand + Handler (valida que el cliente exista)
+│   │   │   ├── CreateProject/   # CreateProjectCommand + Handler (valida cliente y sector)
 │   │   │   ├── UpdateProject/   # UpdateProjectCommand + Handler
 │   │   │   └── DeleteProject/   # DeleteProjectCommand + Handler
 │   │   └── Queries/             # Peticiones de solo lectura + handlers
 │   │       ├── GetAllProjects/  # GetAllProjectsQuery + Handler (filtro opcional por clientId)
 │   │       └── GetProjectById/  # GetProjectByIdQuery + Handler
+│   ├── Sectors/                  # Catalogo de solo lectura (sin Commands)
+│   │   └── Queries/             # GetAllSectorsQuery, GetSectorByIdQuery + handlers
 │   ├── Common/                  # Excepciones de aplicación
 │   │   ├── ClientNotFoundException.cs
-│   │   └── ProjectNotFoundException.cs
+│   │   ├── ProjectNotFoundException.cs
+│   │   └── SectorNotFoundException.cs
 │   ├── Interfaces/              # Puertos de entrada (IUseCase) - futuro
 │   ├── Mappings/                # Perfiles AutoMapper
 │   │   ├── ClientMappingProfile.cs
-│   │   └── ProjectMappingProfile.cs
+│   │   ├── ProjectMappingProfile.cs
+│   │   └── SectorMappingProfile.cs
 │   └── DTOs/                    # DTOs de aplicación
 │       ├── ClientDTOs.cs        # ClientResponse, CreateClientRequest, UpdateClientRequest
-│       └── ProjectDTOs.cs       # ProjectResponse, CreateProjectRequest, UpdateProjectRequest
+│       ├── ProjectDTOs.cs       # ProjectResponse, CreateProjectRequest, UpdateProjectRequest
+│       └── SectorDTOs.cs        # SectorResponse
 │
 ├── Domain/                       # Dominio puro (SIN dependencias)
 │   ├── Entities/                # Entidades con identidad
 │   │   ├── Client.cs            # Cliente (Name, Email, Phone, Logo opcional)
-│   │   └── Project.cs           # Proyecto (ClientId, Title, Description, Technologies, StartDate, DurationMonths)
+│   │   ├── Project.cs           # Proyecto (ClientId, SectorId, Title, Description, Technologies, StartDate, DurationMonths)
+│   │   └── Sector.cs            # Sector del catalogo fijo (7 sectores, IDs estables)
 │   ├── ValueObjects/            # Value Objects (inmutables) - futuro Email, PhoneNumber
 │   ├── Aggregates/              # Agregados (raíz + entidades) - futuro
 │   ├── Events/                  # Domain Events - futuro
@@ -75,18 +81,21 @@ src/
 │   ├── Specifications/          # Specifications (reglas reutilizables) - futuro
 │   └── Interfaces/              # Interfaces (puertos de salida)
 │       ├── IClientRepository.cs # IClientRepository + IUnitOfWork
-│       └── IProjectRepository.cs # GetAllAsync(clientId?), GetByIdAsync, Add/Update/Delete
+│       ├── IProjectRepository.cs # GetAllAsync(clientId?), GetByIdAsync, Add/Update/Delete
+│       └── ISectorRepository.cs  # Catalogo de solo lectura (GetAllAsync, GetByIdAsync)
 │
 └── Infrastructure/               # Capa de infraestructura
     ├── Data/                    # Configuración EF Core
     │   ├── ApplicationDbContext.cs # Implements IUnitOfWork
     │   ├── Configurations/      # IEntityTypeConfiguration
     │   │   ├── ClientConfiguration.cs
-    │   │   └── ProjectConfiguration.cs  # FK a clients, índice, CHECK duration
+    │   │   ├── ProjectConfiguration.cs  # FK a clients y sectors, índices, CHECK duration
+    │   │   └── SectorConfiguration.cs   # Catalogo sembrado con HasData (7 filas fijas)
     │   └── Seeders/             # Datos iniciales
     ├── Repositories/            # Implementación de repositorios
     │   ├── ClientRepository.cs
-    │   └── ProjectRepository.cs
+    │   ├── ProjectRepository.cs
+    │   └── SectorRepository.cs
     └── Migrations/              # Migraciones EF Core
         └── ... (archivos generados)
 ```
@@ -116,6 +125,7 @@ public class Project
 {
     public Guid Id { get; private set; }
     public Guid ClientId { get; private set; }
+    public Guid SectorId { get; private set; }  // obligatorio, FK a sectors (BR-014)
     public string Title { get; private set; }
     public string Description { get; private set; }
     public string Technologies { get; private set; }
@@ -123,10 +133,21 @@ public class Project
     public int? DurationMonths { get; private set; }  // null = en curso; si existe, > 0
     public DateTime CreatedAt { get; private set; }
 
-    public static Project Create(Guid clientId, string title, string description,
+    public static Project Create(Guid clientId, Guid sectorId, string title, string description,
         string technologies, DateTime startDate, int? durationMonths = null) { ... }
 
     public void Update(...) { ... }
+}
+
+public class Sector
+{
+    public Guid Id { get; private set; }
+    public string Name { get; private set; }
+
+    // Catalogo fijo: 7 sectores con IDs estables, sembrado por la migracion
+    public static IReadOnlyList<Sector> DefaultCatalog { get; } = new List<Sector> { ... };
+
+    public static Sector Create(Guid id, string name) { ... }
 }
 ```
 
@@ -193,7 +214,8 @@ public class ClientRepository : IClientRepository
 - **Motor**: PostgreSQL 16
 - **Local**: DB `postgresql-db-ia-tests`, user `timeforsoftware@gmail.com`, password `postgres` (`src/Api/appsettings.json` / `docker-compose.yml:30`)
 - **Prod**: DB `postgresql-db-ia-tests`, user `timeforsoftware@gmail.com`, password desde secreto `DB_PASSWORD` (`ci-cd.yml:110` `host.docker.internal`)
-- **Migraciones**: EF Core Code First en `src/Infrastructure/Migrations/` (`20260923102117_InitialCreate.cs`)
+- **Migraciones**: EF Core Code First en `src/Infrastructure/Migrations/` (`20260923102117_InitialCreate.cs`, `20260925185608_AddProjectsAndClientLogo.cs`, `20260926121836_AddSectorsAndProjectSector.cs`)
+- **Catálogo de sectores**: tabla `sectors` sembrada con 7 filas de IDs fijos en `AddSectorsAndProjectSector`; `projects.sector_id` es `NOT NULL` con FK `fk_projects_sector_id` (`ON DELETE RESTRICT`)
 - **Auto-creación**: `Startup.cs:54` `db.Database.Migrate()` crea tablas en primera ejecución, no requiere `dotnet ef database update` manual
 
 ## Comandos Útiles

@@ -26,7 +26,7 @@ public class DeleteProjectCommandHandlerTests
     public async Task Handle_ShouldDelete_WhenExists()
     {
         // Arrange
-        var project = Project.Create(Guid.NewGuid(), "Portal", "Intranet", ".NET 8", DateTime.UtcNow);
+        var project = Project.Create(Guid.NewGuid(), Guid.NewGuid(), "Portal", "Intranet", ".NET 8", DateTime.UtcNow);
         _repositoryMock.Setup(r => r.GetByIdAsync(project.Id)).ReturnsAsync(project);
         _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 

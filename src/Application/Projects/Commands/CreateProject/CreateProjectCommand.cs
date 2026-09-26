@@ -5,6 +5,7 @@ namespace poc_sdd_net_core_api.Application.Projects.Commands.CreateProject;
 
 public record CreateProjectCommand(
     Guid ClientId,
+    Guid SectorId,
     string Title,
     string Description,
     string Technologies,

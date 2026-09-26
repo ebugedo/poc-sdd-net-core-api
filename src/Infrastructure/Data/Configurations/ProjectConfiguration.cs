@@ -20,6 +20,10 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .HasColumnName("client_id")
             .IsRequired();
 
+        builder.Property(p => p.SectorId)
+            .HasColumnName("sector_id")
+            .IsRequired();
+
         builder.Property(p => p.Title)
             .HasColumnName("title")
             .HasMaxLength(255)
@@ -50,6 +54,9 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.HasIndex(p => p.ClientId)
             .HasDatabaseName("idx_projects_client_id");
 
+        builder.HasIndex(p => p.SectorId)
+            .HasDatabaseName("idx_projects_sector_id");
+
         builder.ToTable("projects", table =>
             table.HasCheckConstraint("chk_projects_duration_months", "duration_months IS NULL OR duration_months > 0"));
 
@@ -58,5 +65,11 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .HasForeignKey(p => p.ClientId)
             .OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_projects_client_id");
+
+        builder.HasOne<Sector>()
+            .WithMany()
+            .HasForeignKey(p => p.SectorId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_projects_sector_id");
     }
 }

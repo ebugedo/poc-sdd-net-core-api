@@ -15,6 +15,7 @@ public class UpdateProjectCommandHandlerTests
 {
     private readonly Mock<IProjectRepository> _repositoryMock;
     private readonly Mock<IClientRepository> _clientRepositoryMock;
+    private readonly Mock<ISectorRepository> _sectorRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly IMapper _mapper;
     private readonly UpdateProjectCommandHandler _sut;
@@ -24,11 +25,13 @@ public class UpdateProjectCommandHandlerTests
     {
         _repositoryMock = new Mock<IProjectRepository>();
         _clientRepositoryMock = new Mock<IClientRepository>();
+        _sectorRepositoryMock = new Mock<ISectorRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _mapper = new MapperConfiguration(cfg => cfg.AddProfile<ProjectMappingProfile>()).CreateMapper();
         _sut = new UpdateProjectCommandHandler(
             _repositoryMock.Object,
             _clientRepositoryMock.Object,
+            _sectorRepositoryMock.Object,
             _unitOfWorkMock.Object,
             _mapper);
 
@@ -39,6 +42,7 @@ public class UpdateProjectCommandHandlerTests
         new(
             _faker.Random.Guid(),
             clientId ?? _faker.Random.Guid(),
+            _faker.Random.Guid(),
             _faker.Company.CompanyName(),
             _faker.Lorem.Sentence(),
             _faker.Lorem.Word(),
@@ -46,7 +50,14 @@ public class UpdateProjectCommandHandlerTests
             _faker.Random.Int(1, 24));
 
     private static Project CreateProject(Guid clientId) =>
-        Project.Create(clientId, "Old", "Old description", "Old stack", DateTime.UtcNow, 3);
+        Project.Create(clientId, Guid.NewGuid(), "Old", "Old description", "Old stack", DateTime.UtcNow, 3);
+
+    private void SetupExistingSector(Guid sectorId)
+    {
+        _sectorRepositoryMock
+            .Setup(r => r.GetByIdAsync(sectorId))
+            .ReturnsAsync(Sector.Create(sectorId, "Ingeniería"));
+    }
 
     [Fact]
     public async Task Handle_ShouldUpdate_WhenExists()
@@ -58,6 +69,7 @@ public class UpdateProjectCommandHandlerTests
         _clientRepositoryMock
             .Setup(r => r.GetByIdAsync(command.ClientId))
             .ReturnsAsync(Client.Create("Acme", "acme@example.com"));
+        SetupExistingSector(command.SectorId);
         _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
@@ -66,6 +78,7 @@ public class UpdateProjectCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result!.Title.Should().Be(command.Title);
+        result.SectorId.Should().Be(command.SectorId);
         result.Description.Should().Be(command.Description);
         result.Technologies.Should().Be(command.Technologies);
         result.DurationMonths.Should().Be(command.DurationMonths);
@@ -106,6 +119,26 @@ public class UpdateProjectCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ShouldThrowSectorNotFoundException_WhenSectorDoesNotExist()
+    {
+        // Arrange
+        var command = GenerateCommand();
+        var project = CreateProject(command.ClientId);
+        _repositoryMock.Setup(r => r.GetByIdAsync(project.Id)).ReturnsAsync(project);
+        _clientRepositoryMock
+            .Setup(r => r.GetByIdAsync(command.ClientId))
+            .ReturnsAsync(Client.Create("Acme", "acme@example.com"));
+        _sectorRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Sector?)null);
+
+        // Act
+        var act = () => _sut.Handle(command with { Id = project.Id }, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<SectorNotFoundException>();
+        _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task Handle_ShouldThrowArgumentException_WhenTechnologiesIsEmpty()
     {
         // Arrange
@@ -115,6 +148,7 @@ public class UpdateProjectCommandHandlerTests
         _clientRepositoryMock
             .Setup(r => r.GetByIdAsync(command.ClientId))
             .ReturnsAsync(Client.Create("Acme", "acme@example.com"));
+        SetupExistingSector(command.SectorId);
 
         // Act
         var act = () => _sut.Handle(command with { Id = project.Id }, CancellationToken.None);

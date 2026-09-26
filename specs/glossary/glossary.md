@@ -5,13 +5,15 @@
 | Término | Definición | Alias |
 |---------|------------|-------|
 | Client | Persona o empresa registrada como cliente del sistema. Entidad principal con Id, Name, Email, Phone, Logo (URL opcional), CreatedAt | Cliente |
-| Project | Proyecto de un cliente: ClientId, Title, Description, Technologies, StartDate, DurationMonths (meses, opcional), CreatedAt | - |
+| Project | Proyecto de un cliente: ClientId, **SectorId (obligatorio)**, Title, Description, Technologies, StartDate, DurationMonths (meses, opcional), CreatedAt | - |
+| Sector | Catálogo de solo lectura con 7 sectores de actividad; cada proyecto pertenece a uno | - |
 | Name | Nombre completo del cliente, obligatorio | - |
 | Email | Correo electrónico del cliente, obligatorio y único en BD | - |
 | Phone | Teléfono del cliente, opcional | - |
 | Logo | URL absoluta http/https del logo del cliente, opcional (`clients.logo`) | - |
 | CreatedAt | Fecha UTC de creación, inmutable | - |
 | ClientId | Cliente propietario del proyecto (FK → `clients.id`) | - |
+| SectorId | Sector del proyecto, obligatorio (FK → `sectors.id`) | - |
 | Title | Título del proyecto, obligatorio | - |
 | Description | Descripción del proyecto, obligatoria | - |
 | Technologies | Texto libre con las tecnologías del proyecto, obligatorio | - |
@@ -39,6 +41,6 @@
 | AutoMapper | Librería para mapeo Entity <-> DTO |
 | Autofac | Contenedor DI en `Program.cs` / `Startup.cs` |
 | Command | Petición de escritura (`IRequest<TResponse>`) que cambia estado: `CreateClientCommand`, `UpdateClientCommand`, `DeleteClientCommand` |
-| Query | Petición de solo lectura que devuelve DTO: `GetAllClientsQuery`, `GetClientByIdQuery`, `GetAllProjectsQuery`, `GetProjectByIdQuery` |
-| Handler | `IRequestHandler<TRequest, TResponse>` que ejecuta un Command o Query - `src/Application/Clients/`, `src/Application/Projects/` |
+| Query | Petición de solo lectura que devuelve DTO: `GetAllClientsQuery`, `GetClientByIdQuery`, `GetAllProjectsQuery`, `GetProjectByIdQuery`, `GetAllSectorsQuery`, `GetSectorByIdQuery` |
+| Handler | `IRequestHandler<TRequest, TResponse>` que ejecuta un Command o Query - `src/Application/Clients/`, `src/Application/Projects/`, `src/Application/Sectors/` |
 | Mediator | MediatR 12.5.0: despacha el request al handler correcto; el controller usa `IMediator.Send(...)` |

@@ -77,22 +77,33 @@
 - [ ] Puedo listar todos los proyectos `GET /api/v1/projects` -> 200
 - [ ] Puedo filtrar por cliente `GET /api/v1/projects?clientId={id}` -> 200
 - [ ] Puedo obtener un proyecto por Id `GET /api/v1/projects/{id}` -> 200 / 404
-- [ ] Puedo crear un proyecto con `clientId`, `title`, `description`, `technologies` y `startDate` requeridos `POST /api/v1/projects` -> 201 / 400
-- [ ] Si el `clientId` no existe, `POST /api/v1/projects` -> 404
+- [ ] Puedo crear un proyecto con `clientId`, `sectorId`, `title`, `description`, `technologies` y `startDate` requeridos `POST /api/v1/projects` -> 201 / 400
+- [ ] El `sectorId` es obligatorio: sin él, `POST` -> 400
+- [ ] Si el `clientId` o el `sectorId` no existen, `POST /api/v1/projects` -> 404
 - [ ] Puedo actualizar un proyecto `PUT /api/v1/projects/{id}` -> 200 / 404 / 400
 - [ ] Puedo eliminar un proyecto `DELETE /api/v1/projects/{id}` -> 204 / 404
 - [ ] `durationMonths` es opcional y, si se informa, debe ser > 0
 - [ ] No se puede eliminar un cliente que tiene proyectos asociados
 
 **Escenario: Crear proyecto válido**
-- Dado un cliente existente con id `c1`
-- Cuando POST /api/v1/projects con `{clientId: "c1", title: "Portal", description: "Intranet", technologies: ".NET 8, PostgreSQL", startDate: "2026-01-15", durationMonths: 6}`
-- Entonces 201 Created y el response incluye `clientId: "c1"` y `durationMonths: 6`
+- Dado un cliente existente con id `c1` y el sector "Servicios tecnológicos" con id `s1`
+- Cuando POST /api/v1/projects con `{clientId: "c1", sectorId: "s1", title: "Portal", description: "Intranet", technologies: ".NET 8, PostgreSQL", startDate: "2026-01-15", durationMonths: 6}`
+- Entonces 201 Created y el response incluye `clientId: "c1"`, `sectorId: "s1"` y `durationMonths: 6`
 
 **Escenario: Cliente inexistente**
 - Dado un `clientId` que no existe
 - Cuando POST /api/v1/projects
 - Entonces 404 con `code: "NOT_FOUND"`
+
+**Escenario: Sector inexistente**
+- Dado un `sectorId` que no está en el catálogo
+- Cuando POST /api/v1/projects
+- Entonces 404
+
+**Escenario: Sector ausente**
+- Dado un request sin `sectorId` (o con `Guid.Empty`)
+- Cuando POST /api/v1/projects
+- Entonces 400 con `code: "VALIDATION_ERROR"`
 
 **Escenario: Duración inválida**
 - Dado un request con `durationMonths: 0`
@@ -105,3 +116,30 @@
 - Entonces 200 con solo los proyectos del cliente A
 
 ---
+
+---
+
+### US-004: Consultar el Catálogo de Sectores
+**Como** usuario del sistema
+**Quiero** consultar los sectores disponibles
+**Para** elegir el sector al registrar un proyecto
+
+**Criterios de Aceptación:**
+- [ ] `GET /api/v1/sectors` devuelve los 7 sectores del catálogo -> 200
+- [ ] `GET /api/v1/sectors/{id}` devuelve un sector -> 200 / 404
+- [ ] El catálogo es de solo lectura: no hay endpoints para crear, editar ni borrar sectores
+- [ ] Todo proyecto creado tiene un sector asignado
+
+**Escenario: Listar catálogo**
+- Cuando GET /api/v1/sectors
+- Entonces 200 con 7 sectores: Administración pública, Ingeniería, Publicidad, Servicios financieros, Servicios tecnológicos, Transporte y Sector inmobiliario
+
+**Escenario: Consultar un sector**
+- Dado el id del sector "Transporte"
+- Cuando GET /api/v1/sectors/{id}
+- Entonces 200 con `{id, name: "Transporte"}`
+
+**Escenario: Sector inexistente**
+- Dado un `id` que no está en el catálogo
+- Cuando GET /api/v1/sectors/{id}
+- Entonces 404
