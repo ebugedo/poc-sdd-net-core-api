@@ -31,8 +31,10 @@ public class GetProjectByIdQueryHandlerTests
     {
         // Arrange
         var clientId = _faker.Random.Guid();
+        var sectorId = _faker.Random.Guid();
         var project = Project.Create(
             clientId,
+            sectorId,
             "Portal",
             "Intranet",
             ".NET 8, PostgreSQL",
@@ -48,6 +50,7 @@ public class GetProjectByIdQueryHandlerTests
         result.Should().NotBeNull();
         result.Id.Should().Be(project.Id);
         result.ClientId.Should().Be(clientId);
+        result.SectorId.Should().Be(sectorId);
         result.Title.Should().Be("Portal");
         result.Description.Should().Be("Intranet");
         result.Technologies.Should().Be(".NET 8, PostgreSQL");

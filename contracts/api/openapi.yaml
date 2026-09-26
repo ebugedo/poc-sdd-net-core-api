@@ -229,6 +229,45 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /sectors:
+    get:
+      summary: Obtener el catalogo de sectores (solo lectura)
+      operationId: getSectors
+      tags:
+        - Sectors
+      responses:
+        '200':
+          description: Catalogo de sectores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sector'
+
+  /sectors/{id}:
+    get:
+      summary: Obtener sector por ID
+      operationId: getSectorById
+      tags:
+        - Sectors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Sector encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sector'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 components:
   schemas:
     Client:
@@ -309,6 +348,9 @@ components:
         clientId:
           type: string
           format: uuid
+        sectorId:
+          type: string
+          format: uuid
         title:
           type: string
         description:
@@ -332,6 +374,7 @@ components:
       type: object
       required:
         - clientId
+        - sectorId
         - title
         - description
         - technologies
@@ -340,6 +383,10 @@ components:
         clientId:
           type: string
           format: uuid
+        sectorId:
+          type: string
+          format: uuid
+          description: Sector del proyecto (obligatorio, ver /sectors)
         title:
           type: string
           minLength: 1
@@ -363,6 +410,7 @@ components:
       type: object
       required:
         - clientId
+        - sectorId
         - title
         - description
         - technologies
@@ -371,6 +419,10 @@ components:
         clientId:
           type: string
           format: uuid
+        sectorId:
+          type: string
+          format: uuid
+          description: Sector del proyecto (obligatorio, ver /sectors)
         title:
           type: string
           minLength: 1
@@ -389,6 +441,27 @@ components:
           format: int32
           minimum: 1
           description: Duración en meses (opcional)
+
+    Sector:
+      type: object
+      description: Catalogo de sectores de solo lectura (7 valores fijos)
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          enum:
+            - Administración pública
+            - Ingeniería
+            - Publicidad
+            - Servicios financieros
+            - Servicios tecnológicos
+            - Transporte
+            - Sector inmobiliario
 
     ErrorResponse:
       type: object

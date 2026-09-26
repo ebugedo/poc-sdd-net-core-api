@@ -97,6 +97,7 @@ sequenceDiagram
 | `ArgumentException` | `Client`, `Project` (Domain) | 400 `{code: "VALIDATION_ERROR"}` |
 | `ClientNotFoundException` | Handlers de Application | 404 |
 | `ProjectNotFoundException` | Handlers de Application | 404 |
+| `SectorNotFoundException` | Handlers de Application | 404 |
 
 ## Flujo: Crear Proyecto (Command)
 
@@ -107,17 +108,22 @@ sequenceDiagram
     participant Mediator as MediatR (IMediator)
     participant Handler as CreateProjectCommandHandler
     participant Clients as IClientRepository
+    participant Sectors as ISectorRepository
     participant Repo as IProjectRepository
     participant DB
 
-    Client->>API: POST /api/v1/projects {clientId, title, ...}
+    Client->>API: POST /api/v1/projects {clientId, sectorId, title, ...}
     API->>Mediator: Send(CreateProjectCommand)
     Mediator->>Handler: Handle(command)
     Handler->>Clients: GetByIdAsync(clientId)
+    Handler->>Sectors: ISectorRepository.GetByIdAsync(sectorId)
     alt Cliente no existe
         Handler-->>API: ClientNotFoundException
         API-->>Client: 404 Not Found
-    else Cliente existe
+    else Sector no existe
+        Handler-->>API: SectorNotFoundException
+        API-->>Client: 404 Not Found
+    else Cliente y sector existen
         Handler->>Repo: Project.Create(...) + AddAsync() + SaveChangesAsync()
         Repo->>DB: INSERT INTO projects
         Handler-->>API: ProjectResponse (AutoMapper)
@@ -176,3 +182,25 @@ sequenceDiagram
 ```
 
 `logo: null` o ausente borra el logo del cliente.
+
+## Flujo: Consultar el Catálogo de Sectores (Query)
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API as SectorsController
+    participant Mediator as MediatR (IMediator)
+    participant Handler as GetAllSectorsQueryHandler
+    participant Repo as ISectorRepository
+    participant DB
+
+    Client->>API: GET /api/v1/sectors
+    API->>Mediator: Send(GetAllSectorsQuery)
+    Mediator->>Handler: Handle(query)
+    Handler->>Repo: GetAllAsync()
+    Repo->>DB: SELECT * FROM sectors ORDER BY name
+    Handler-->>API: IReadOnlyList<SectorResponse>
+    API-->>Client: 200 OK
+```
+
+`SectorsController` solo expone GET: no existen Commands ni endpoints de escritura (ADR-005). `GetSectorByIdQuery` lanza `SectorNotFoundException` → 404 si el id no está en el catálogo.

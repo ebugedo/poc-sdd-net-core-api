@@ -25,13 +25,16 @@
 
 ### Pasos
 1. El usuario obtiene o crea el cliente (`GET /api/v1/clients`)
-2. Envía `POST /api/v1/projects` con `clientId`, `title`, `description`, `technologies`, `startDate` y `durationMonths` (opcional)
-3. El API valida el cuerpo y envía el `CreateProjectCommand` al Mediator
-4. El handler valida que el cliente exista, persiste el proyecto y devuelve `ProjectResponse`
-5. El API responde 201 Created
+2. Consulta el catálogo si no conoce los sectores: `GET /api/v1/sectors`
+3. Envía `POST /api/v1/projects` con `clientId`, `sectorId`, `title`, `description`, `technologies`, `startDate` y `durationMonths` (opcional)
+4. El API valida el cuerpo y envía el `CreateProjectCommand` al Mediator
+5. El handler valida que el cliente **y el sector** existan, persiste el proyecto y devuelve `ProjectResponse`
+6. El API responde 201 Created
 
 ### Decisiones
 - Si el cliente no existe → `ClientNotFoundException` → 404
+- Si el sector no existe → `SectorNotFoundException` → 404
+- Si `sectorId` viene vacío → 400 `VALIDATION_ERROR`
 - Si `title`, `description` o `technologies` vienen vacíos → 400 `VALIDATION_ERROR`
 - Si `durationMonths` viene informado y es <= 0 → 400 `VALIDATION_ERROR`
 - Si `durationMonths` no viene informado → el proyecto se considera en curso (duración abierta)
@@ -42,7 +45,7 @@
 
 ### Errores Posibles
 - 400: cuerpo inválido (campos requeridos vacíos o duración <= 0)
-- 404: el `clientId` no corresponde a ningún cliente
+- 404: el `clientId` o el `sectorId` no corresponden a registros existentes
 - 500: error inesperado de persistencia
 
 ---
@@ -85,3 +88,24 @@
 - Conflicto de integridad referencial: el cliente tiene proyectos (ver BR-013; manejo 409 futuro)
 
 ---
+
+---
+
+## Flujo: Consultar el Catálogo de Sectores
+
+### Pasos
+1. El usuario solicita `GET /api/v1/sectors` (o `GET /api/v1/sectors/{id}`)
+2. El API envía el `GetAllSectorsQuery` o el `GetSectorByIdQuery` al Mediator
+3. El handler lee el catálogo (`ISectorRepository`) y mapea a `SectorResponse`
+4. El API responde 200
+
+### Decisiones
+- El catálogo es de solo lectura: no hay Commands ni endpoints de escritura
+- `GET /api/v1/sectors/{id}` sobre un id desconocido → `SectorNotFoundException` → 404
+
+### Resultados Exitosos
+- Lista estable de 7 sectores con id fijo (sembrado por la migración)
+
+### Errores Posibles
+- 404: el sector solicitado no existe
+- 500: error inesperado al consultar

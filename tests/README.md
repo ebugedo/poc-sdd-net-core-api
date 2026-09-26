@@ -50,7 +50,8 @@ tests/
 │   ├── Domain/
 │   │   └── Entities/
 │   │       ├── ClientTests.cs              # xUnit + FluentAssertions (incluye logo: URL válida, límites)
-│   │       └── ProjectTests.cs             # xUnit + FluentAssertions (BR-008..BR-011)
+│   │       ├── ProjectTests.cs             # xUnit + FluentAssertions (BR-008..BR-014, sectorId obligatorio)
+│   │       └── SectorTests.cs              # catálogo fijo de 7 sectores, IDs estables y únicos
 │   └── Application/
 │       ├── Clients/
 │       │   ├── Commands/
@@ -60,27 +61,34 @@ tests/
 │       │   └── Queries/
 │       │       ├── GetAllClientsQueryHandlerTests.cs
 │       │       └── GetClientByIdQueryHandlerTests.cs
-│       └── Projects/
-│           ├── Commands/
-│           │   ├── CreateProjectCommandHandlerTests.cs  # incluye cliente inexistente -> 404
-│           │   ├── UpdateProjectCommandHandlerTests.cs
-│           │   └── DeleteProjectCommandHandlerTests.cs
+│       ├── Projects/
+│       │   ├── Commands/
+│       │   │   ├── CreateProjectCommandHandlerTests.cs  # cliente/sector inexistente -> 404, sectorId vacío -> 400
+│       │   │   ├── UpdateProjectCommandHandlerTests.cs
+│       │   │   └── DeleteProjectCommandHandlerTests.cs
+│       │   └── Queries/
+│       │       ├── GetAllProjectsQueryHandlerTests.cs    # filtro por clientId
+│       │       └── GetProjectByIdQueryHandlerTests.cs
+│       └── Sectors/
 │           └── Queries/
-│               ├── GetAllProjectsQueryHandlerTests.cs    # filtro por clientId
-│               └── GetProjectByIdQueryHandlerTests.cs
+│               ├── GetAllSectorsQueryHandlerTests.cs     # devuelve los 7 sectores
+│               └── GetSectorByIdQueryHandlerTests.cs     # inexistente -> SectorNotFoundException
 │
 ├── integration/
 │   ├── Repositories/
 │   │   ├── ClientRepositoryTests.cs        # futuro Testcontainers
-│   │   └── ProjectRepositoryTests.cs       # futuro Testcontainers
+│   │   ├── ProjectRepositoryTests.cs       # futuro Testcontainers
+│   │   └── SectorRepositoryTests.cs        # futuro Testcontainers (lectura del catálogo sembrado)
 │   └── Api/
 │       ├── ClientsControllerTests.cs       # futuro WebApplicationFactory
-│       └── ProjectsControllerTests.cs      # futuro WebApplicationFactory
+│       ├── ProjectsControllerTests.cs      # futuro WebApplicationFactory
+│       └── SectorsControllerTests.cs       # futuro WebApplicationFactory
 │
 └── acceptance/
     └── Features/
         ├── ClientFeatureTests.cs           # futuro
-        └── ProjectFeatureTests.cs          # futuro
+        ├── ProjectFeatureTests.cs          # futuro
+        └── SectorFeatureTests.cs           # futuro
 ```
 
 ## Ejecución
@@ -138,7 +146,7 @@ public class ClientTests
 
 ## Ejemplo de Prueba con Mock y Bogus (Moq)
 
-Los handlers se testean directamente (sin mediator): se mockean `IClientRepository` e `IUnitOfWork`, y el mapper real se construye con `MapperConfiguration`.
+Los handlers se testean directamente (sin mediator): se mockean los repositorios (`IClientRepository`, `IProjectRepository`, `ISectorRepository`) e `IUnitOfWork`, y el mapper real se construye con `MapperConfiguration`.
 
 ```csharp
 public class CreateClientCommandHandlerTests
@@ -183,5 +191,5 @@ public class CreateClientCommandHandlerTests
 
 > **Nota**: los commands/queries son `record` posicionales, sin constructor sin parámetros. Bogus no puede instanciarlos: usa `new Faker()` y un factory (`GenerateCommand()`) en lugar de `Faker<TCommand>`.
 
-Estado actual: **21 pruebas** en verde (`dotnet test`).
+Estado actual: **86 pruebas** en verde (`dotnet test`).
 

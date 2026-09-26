@@ -55,6 +55,7 @@ public class ProjectsController : ControllerBase
         {
             var command = new CreateProjectCommand(
                 request.ClientId,
+                request.SectorId,
                 request.Title,
                 request.Description,
                 request.Technologies,
@@ -68,7 +69,7 @@ public class ProjectsController : ControllerBase
         {
             return BadRequest(new { code = "VALIDATION_ERROR", message = ex.Message });
         }
-        catch (ClientNotFoundException)
+        catch (Exception ex) when (ex is ClientNotFoundException or SectorNotFoundException)
         {
             return NotFound();
         }
@@ -85,6 +86,7 @@ public class ProjectsController : ControllerBase
             var command = new UpdateProjectCommand(
                 id,
                 request.ClientId,
+                request.SectorId,
                 request.Title,
                 request.Description,
                 request.Technologies,
@@ -102,7 +104,7 @@ public class ProjectsController : ControllerBase
         {
             return BadRequest(new { code = "VALIDATION_ERROR", message = ex.Message });
         }
-        catch (ClientNotFoundException)
+        catch (Exception ex) when (ex is ClientNotFoundException or SectorNotFoundException)
         {
             return NotFound();
         }

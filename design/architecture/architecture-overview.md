@@ -57,12 +57,12 @@
 - **Componentes**:
   - `<Feature>/Commands/<UseCase>/<UseCase>Command.cs` + `<UseCase>CommandHandler.cs` (escritura: crean/mueven/borran, usan `IUnitOfWork`)
   - `<Feature>/Queries/<UseCase>/<UseCase>Query.cs` + `<UseCase>QueryHandler.cs` (lectura: solo mapean a DTO, nunca guardan)
-  - Features activas: `Clients/` (5 casos de uso) y `Projects/` (5 casos de uso)
-  - `Common/ClientNotFoundException.cs`, `Common/ProjectNotFoundException.cs` (excepciones de aplicación → 404 en el controller)
+  - Features activas: `Clients/` (5 casos de uso), `Projects/` (5 casos de uso) y `Sectors/` (2 queries, sin commands: catálogo de solo lectura)
+  - `Common/ClientNotFoundException.cs`, `Common/ProjectNotFoundException.cs`, `Common/SectorNotFoundException.cs` (excepciones de aplicación → 404 en el controller)
   - `DTOs/`, `Mappings/` (AutoMapper)
 - **Contrato con la API**: los handlers implementan `IRequestHandler<TRequest, TResponse>`; el controller envía con `IMediator.Send(...)`
 - **Registro**: `services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(...))` (`Startup.cs:43`) → handlers transitorios resueltos por Autofac
-- **Mapping**: AutoMapper para Entity ↔ DTO (`ClientResponse`, `ProjectResponse`)
+- **Mapping**: AutoMapper para Entity ↔ DTO (`ClientResponse`, `ProjectResponse`, `SectorResponse`)
 
 ### Domain Layer
 - **Responsabilidad**: Lógica de negocio, reglas, invariantes
@@ -130,6 +130,8 @@ src/
 │   ├── Projects/
 │   │   ├── Commands/             # CreateProject, UpdateProject, DeleteProject (+ handlers)
 │   │   └── Queries/              # GetAllProjects, GetProjectById (+ handlers)
+│   ├── Sectors/                  # Catálogo de solo lectura (sin Commands)
+│   │   └── Queries/              # GetAllSectors, GetSectorById (+ handlers)
 │   ├── Common/                   # Excepciones de aplicación
 │   ├── Interfaces/              # Puertos de entrada/salida
 │   ├── Mappings/                # Perfiles AutoMapper

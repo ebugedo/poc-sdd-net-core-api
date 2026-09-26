@@ -28,6 +28,7 @@ public class GetAllProjectsQueryHandlerTests
     private Project GenerateProject(Guid clientId) =>
         Project.Create(
             clientId,
+            _faker.Random.Guid(),
             _faker.Company.CompanyName(),
             _faker.Lorem.Sentence(),
             _faker.Lorem.Word(),
@@ -87,6 +88,7 @@ public class GetAllProjectsQueryHandlerTests
     {
         // Arrange
         var project = Project.Create(
+            _faker.Random.Guid(),
             _faker.Random.Guid(),
             "Portal",
             "Intranet",

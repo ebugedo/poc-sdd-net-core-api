@@ -10,7 +10,7 @@
 ### GET /api/v1/clients
 - **Descripción**: Obtener lista de todos los clientes
 - **Parámetros**: Ninguno
-- **Response 200**: 
+- **Response 200**:
   ```json
   [
     {
@@ -27,9 +27,9 @@
 
 ### GET /api/v1/clients/{id}
 - **Descripción**: Obtener un cliente por su ID
-- **Parámetros**: 
+- **Parámetros**:
   - `id` (path, uuid, requerido): Identificador del cliente
-- **Response 200**: 
+- **Response 200**:
   ```json
   {
     "id": "uuid",
@@ -58,7 +58,7 @@
 
 ### PUT /api/v1/clients/{id}
 - **Descripción**: Actualizar un cliente existente
-- **Parámetros**: 
+- **Parámetros**:
   - `id` (path, uuid, requerido): Identificador del cliente
 - **Request Body**: 
   ```json
@@ -75,7 +75,7 @@
 
 ### DELETE /api/v1/clients/{id}
 - **Descripción**: Eliminar un cliente
-- **Parámetros**: 
+- **Parámetros**:
   - `id` (path, uuid, requerido): Identificador del cliente
 - **Response 204**: Cliente eliminado exitosamente
 - **Response 404**: Cliente no encontrado
@@ -87,12 +87,13 @@
 - **Descripción**: Obtener lista de todos los proyectos
 - **Parámetros**:
   - `clientId` (query, uuid, opcional): Filtra los proyectos de un cliente
-- **Response 200**: 
+- **Response 200**:
   ```json
   [
     {
       "id": "uuid",
       "clientId": "uuid",
+      "sectorId": "uuid",
       "title": "string",
       "description": "string",
       "technologies": "string",
@@ -106,13 +107,14 @@
 
 ### GET /api/v1/projects/{id}
 - **Descripción**: Obtener un proyecto por su ID
-- **Parámetros**: 
+- **Parámetros**:
   - `id` (path, uuid, requerido): Identificador del proyecto
-- **Response 200**: 
+- **Response 200**:
   ```json
   {
     "id": "uuid",
     "clientId": "uuid",
+    "sectorId": "uuid",
     "title": "string",
     "description": "string",
     "technologies": "string",
@@ -129,6 +131,7 @@
   ```json
   {
     "clientId": "uuid (requerido)",
+    "sectorId": "uuid (requerido, debe existir en /api/v1/sectors)",
     "title": "string (requerido)",
     "description": "string (requerido)",
     "technologies": "string (requerido)",
@@ -137,17 +140,18 @@
   }
   ```
 - **Response 201**: Proyecto creado exitosamente
-- **Response 400**: Datos de entrada inválidos (incluye `durationMonths <= 0`)
-- **Response 404**: El cliente indicado no existe
+- **Response 400**: Datos de entrada inválidos (incluye `durationMonths <= 0` o `sectorId` vacío)
+- **Response 404**: El cliente o el sector indicado no existen
 
 ### PUT /api/v1/projects/{id}
 - **Descripción**: Actualizar un proyecto existente
-- **Parámetros**: 
+- **Parámetros**:
   - `id` (path, uuid, requerido): Identificador del proyecto
 - **Request Body**: 
   ```json
   {
     "clientId": "uuid (requerido)",
+    "sectorId": "uuid (requerido, debe existir en /api/v1/sectors)",
     "title": "string (requerido)",
     "description": "string (requerido)",
     "technologies": "string (requerido)",
@@ -156,15 +160,46 @@
   }
   ```
 - **Response 200**: Proyecto actualizado exitosamente
-- **Response 400**: Datos de entrada inválidos
-- **Response 404**: Proyecto no encontrado o cliente indicado no existe
+- **Response 400**: Datos de entrada inválidos (incluye `durationMonths <= 0` o `sectorId` vacío)
+- **Response 404**: Proyecto no encontrado, o el cliente/sector indicado no existen
 
 ### DELETE /api/v1/projects/{id}
 - **Descripción**: Eliminar un proyecto
-- **Parámetros**: 
+- **Parámetros**:
   - `id` (path, uuid, requerido): Identificador del proyecto
 - **Response 204**: Proyecto eliminado exitosamente
 - **Response 404**: Proyecto no encontrado
+
+## Endpoints - Sectores
+
+> Catálogo de solo lectura con 7 valores fijos. No existen endpoints de escritura (BR-016).
+
+### GET /api/v1/sectors
+- **Descripción**: Obtener el catálogo de sectores
+- **Parámetros**: Ninguno
+- **Response 200**:
+  ```json
+  [
+    { "id": "uuid", "name": "Administración pública" },
+    { "id": "uuid", "name": "Ingeniería" },
+    { "id": "uuid", "name": "Publicidad" },
+    { "id": "uuid", "name": "Servicios financieros" },
+    { "id": "uuid", "name": "Servicios tecnológicos" },
+    { "id": "uuid", "name": "Transporte" },
+    { "id": "uuid", "name": "Sector inmobiliario" }
+  ]
+  ```
+- **Response 500**: Error interno del servidor
+
+### GET /api/v1/sectors/{id}
+- **Descripción**: Obtener un sector por su ID
+- **Parámetros**:
+  - `id` (path, uuid, requerido): Identificador del sector
+- **Response 200**:
+  ```json
+  { "id": "uuid", "name": "Servicios tecnológicos" }
+  ```
+- **Response 404**: Sector no encontrado
 
 ## Autenticación
 <!-- Pendiente de implementar -->

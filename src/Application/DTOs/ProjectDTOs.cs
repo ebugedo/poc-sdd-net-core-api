@@ -4,6 +4,7 @@ public class ProjectResponse
 {
     public Guid Id { get; set; }
     public Guid ClientId { get; set; }
+    public Guid SectorId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Technologies { get; set; } = string.Empty;
@@ -15,6 +16,7 @@ public class ProjectResponse
 public class CreateProjectRequest
 {
     public Guid ClientId { get; set; }
+    public Guid SectorId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Technologies { get; set; } = string.Empty;
@@ -25,6 +27,7 @@ public class CreateProjectRequest
 public class UpdateProjectRequest
 {
     public Guid ClientId { get; set; }
+    public Guid SectorId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Technologies { get; set; } = string.Empty;

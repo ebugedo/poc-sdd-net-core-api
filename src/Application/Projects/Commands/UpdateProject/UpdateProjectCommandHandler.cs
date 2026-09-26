@@ -9,17 +9,20 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
 {
     private readonly IProjectRepository _repository;
     private readonly IClientRepository _clientRepository;
+    private readonly ISectorRepository _sectorRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
     public UpdateProjectCommandHandler(
         IProjectRepository repository,
         IClientRepository clientRepository,
+        ISectorRepository sectorRepository,
         IUnitOfWork unitOfWork,
         IMapper mapper)
     {
         _repository = repository;
         _clientRepository = clientRepository;
+        _sectorRepository = sectorRepository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
@@ -31,18 +34,24 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         if (project is null)
             return null;
 
-        var client = await _clientRepository.GetByIdAsync(request.ClientId);
-
-        if (client is null)
-            throw new Common.ClientNotFoundException(request.ClientId);
-
         project.Update(
             request.ClientId,
+            request.SectorId,
             request.Title,
             request.Description,
             request.Technologies,
             request.StartDate,
             request.DurationMonths);
+
+        var client = await _clientRepository.GetByIdAsync(request.ClientId);
+
+        if (client is null)
+            throw new Common.ClientNotFoundException(request.ClientId);
+
+        var sector = await _sectorRepository.GetByIdAsync(request.SectorId);
+
+        if (sector is null)
+            throw new Common.SectorNotFoundException(request.SectorId);
 
         await _repository.UpdateAsync(project);
         await _unitOfWork.SaveChangesAsync();

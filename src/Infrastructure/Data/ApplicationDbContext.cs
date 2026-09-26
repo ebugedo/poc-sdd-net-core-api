@@ -13,6 +13,7 @@ public class ApplicationDbContext : DbContext, IUnitOfWork
 
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<Project> Projects => Set<Project>();
+    public DbSet<Sector> Sectors => Set<Sector>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -4,6 +4,7 @@ public class Project
 {
     public Guid Id { get; private set; }
     public Guid ClientId { get; private set; }
+    public Guid SectorId { get; private set; }
     public string Title { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
     public string Technologies { get; private set; } = string.Empty;
@@ -15,6 +16,7 @@ public class Project
 
     public static Project Create(
         Guid clientId,
+        Guid sectorId,
         string title,
         string description,
         string technologies,
@@ -23,6 +25,9 @@ public class Project
     {
         if (clientId == Guid.Empty)
             throw new ArgumentException("ClientId is required", nameof(clientId));
+
+        if (sectorId == Guid.Empty)
+            throw new ArgumentException("SectorId is required", nameof(sectorId));
 
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("Title is required", nameof(title));
@@ -40,6 +45,7 @@ public class Project
         {
             Id = Guid.NewGuid(),
             ClientId = clientId,
+            SectorId = sectorId,
             Title = title,
             Description = description,
             Technologies = technologies,
@@ -51,6 +57,7 @@ public class Project
 
     public void Update(
         Guid clientId,
+        Guid sectorId,
         string title,
         string description,
         string technologies,
@@ -59,6 +66,9 @@ public class Project
     {
         if (clientId == Guid.Empty)
             throw new ArgumentException("ClientId is required", nameof(clientId));
+
+        if (sectorId == Guid.Empty)
+            throw new ArgumentException("SectorId is required", nameof(sectorId));
 
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("Title is required", nameof(title));
@@ -73,6 +83,7 @@ public class Project
             throw new ArgumentException("DurationMonths must be greater than 0", nameof(durationMonths));
 
         ClientId = clientId;
+        SectorId = sectorId;
         Title = title;
         Description = description;
         Technologies = technologies;
